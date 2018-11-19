@@ -10,6 +10,9 @@
 
 #define MAX_X_COUNT 60
 
+#define WHITE_COLOR	-1
+
+
 // CResultView
 
 IMPLEMENT_DYNCREATE(CResultView, CView)
@@ -33,6 +36,7 @@ BEGIN_MESSAGE_MAP(CResultView, CView)
 	ON_WM_SIZE()	
 	ON_WM_MOUSEMOVE()
 	ON_WM_SETCURSOR()
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
@@ -159,39 +163,39 @@ void CResultView::CheckROICount(int ROI_count, int cROI_count)
 	{
 		for (int i = ROI_count; i < cROI_count; i++)
 		{
-			str.Format("#%d", i + 1);
+			str.Format("%d", i + 1);
 			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.AddSeries(0);
 			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).SetTitle(str);
 			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).SetLegendTitle(str);
 			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).SetColor(ColorRef(i));
-			m_ResultDlg.m_MinTabDlg.m_Min_Chart.AddSeries(0);
-			m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).SetTitle(str);
-			m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).SetLegendTitle(str);
-			m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).SetColor(ColorRef(i));
-			m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.AddSeries(0);
+
+			/*m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.AddSeries(0);
 			m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).SetTitle(str);
 			m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).SetLegendTitle(str);
-			m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).SetColor(ColorRef(i));
+			m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).SetColor(ColorRef(i));*/
 		}
+		m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
+		m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).SetColor(ColorRef(WHITE_COLOR));
 	}
 	else if (ROI_count > cROI_count)
 	{
 		for (int i = ROI_count - 1; i >= cROI_count; i--)
 		{
 			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
-			m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).Clear();
-			m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
+			//m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
 			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.RemoveSeries(i);
-			m_ResultDlg.m_MinTabDlg.m_Min_Chart.RemoveSeries(i);
-			m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.RemoveSeries(i);
+			//m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.RemoveSeries(i);
 		}
+		m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
+		m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.RemoveSeries(0);
 	}
 }
-
 
 void CResultView::UpdateResult()		
 {
 	CString str;
+
+	if (pDoc->m_bPreviousBtnClick) return;
 
 	if (pDoc->m_ROI_check_flag)
 	{
@@ -202,50 +206,50 @@ void CResultView::UpdateResult()
 
 	if (pDoc->m_OpenMode != 1)			// Online, Simulation 인 경우에만
 	{
-		if (theApp.m_bLoggingRunning)
-		{
+		if(!(pDoc->m_ZoneInfoEnable))
 			m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
-			m_ResultDlg.m_Coefficient_btn.EnableWindow(FALSE);
-		}
 		else
 		{
-			m_ResultDlg.m_ZoneInf_btn.EnableWindow(TRUE);
-			m_ResultDlg.m_Coefficient_btn.EnableWindow(TRUE);
+			if (theApp.m_bLoggingRunning)
+			{
+				m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
+				m_ResultDlg.m_Coefficient_btn.EnableWindow(FALSE);
+				m_ResultDlg.m_ClearGraph_btn.EnableWindow(FALSE);
+			}
+			else
+			{
+				m_ResultDlg.m_ZoneInf_btn.EnableWindow(TRUE);
+				m_ResultDlg.m_Coefficient_btn.EnableWindow(TRUE);
+				m_ResultDlg.m_ClearGraph_btn.EnableWindow(TRUE);
+			}
 		}
 	}
 
-
-	// 나탕 최고 온도 Trend
-	if (pDoc->m_ResultData.TMin[0] > 0.0f && theApp.m_bLoggingRunning  || pDoc->m_OpenMode == 2 || pDoc->m_OpenMode == 1 )
+	// 온도 Trend
+	if (pDoc->m_ResultData.TMin[0] > 0.0f && theApp.m_bLoggingRunning  || pDoc->m_OpenMode == 1 )
 	{
 		if (pDoc->m_OpenMode == 3)
 		{
-			if (theApp.m_TchartFlag)
-				m_XCount_modeThr++;
-
-			ProcessTime.Format(_T("%d%d:%d%d:%d%d"),
-				(m_XCount_modeThr / 36000) % 10, (m_XCount_modeThr / 3600) % 10,	// 시
-				(m_XCount_modeThr / 600) % 6, (m_XCount_modeThr / 60) % 10,			// 분
-				(m_XCount_modeThr / 10) % 6, m_XCount_modeThr % 10);				// 초
+			ProcessTime = theApp.m_systemTime;
+			ProcessTime.Delete(ProcessTime.ReverseFind('.'), ProcessTime.GetLength() - ProcessTime.ReverseFind('.'));
 		}
 		else if (pDoc->m_OpenMode == 2)
 		{
-			ProcessTime.Format(_T("%d%d:%d%d:%d%d"),
-				(m_XCount / 36000) % 10, (m_XCount / 3600) % 10,	// 시
-				(m_XCount / 600) % 6, (m_XCount / 60) % 10,			// 분
-				(m_XCount / 10) % 6, m_XCount % 10);				// 초
+			ProcessTime = theApp.m_systemTime;
+			ProcessTime.Delete(ProcessTime.ReverseFind('.'), ProcessTime.GetLength() - ProcessTime.ReverseFind('.'));
 		}
 		else
-			ProcessTime.Format(_T("%d"), pDoc->m_IdxDS);
+		{
+			ProcessTime = theApp.m_systemTime;
+			ProcessTime.Delete(ProcessTime.ReverseFind('.'), ProcessTime.GetLength() - ProcessTime.ReverseFind('.'));
+		}
 
 		if (pDoc->m_ChartFlag)
 		{
 			for (int i = 0; i < pDoc->m_ROICount; i++)
-			{
 				m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
-				m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).Clear();
-				m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
-			}
+
+			m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
 
 			pDoc->m_ChartFlag = false;
 			m_XCount = 0;
@@ -253,30 +257,34 @@ void CResultView::UpdateResult()
 		}
 		else
 		{
-			for (int i = 0; i < pDoc->m_ROICount; i++)
+			if (!pDoc->m_bUpdateProperty)
 			{
-				if (pDoc->m_OpenMode == 3)
+				for (int i = 0; i < pDoc->m_ROICount; i++)
 				{
 					if (pDoc->m_ResultData.TMax[i] != 0.0f)
 						m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TMax[i], ProcessTime, ColorRef(i));
-					if (pDoc->m_ResultData.TMin[i] != 0.0f)
-						m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TMin[i], ProcessTime, ColorRef(i));
-					if (pDoc->m_ResultData.TAvg[i] != 0.0f)
-						m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TAvg[i], ProcessTime, ColorRef(i));
-				}
-				else 
-				{
-					if (pDoc->m_ResultData.TMax[i] != 0.0f)
-						m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TMax[i], ProcessTime, ColorRef(i));
-					if (pDoc->m_ResultData.TMin[i] != 0.0f)
-						m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TMin[i], ProcessTime, ColorRef(i));
-					if (pDoc->m_ResultData.TAvg[i] != 0.0f)
-						m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TAvg[i], ProcessTime, ColorRef(i));
-				}
-			}
-			m_XCount++;
-		}
 
+				}
+
+				if (pDoc->m_bCheckSpread) 
+				{
+					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).AddXY(m_XCount, pDoc->m_spreadTempr, ProcessTime, ColorRef(WHITE_COLOR));
+					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(1).AddXY(m_XCount, pDoc->m_spreadlimitTempr, ProcessTime, ColorRef(0));		// RED
+					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(2).AddXY(m_XCount, pDoc->m_spreadlimitTempr-0.01, ProcessTime, ColorRef(0));
+					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(3).AddXY(m_XCount, pDoc->m_spreadlimitTempr+0.01, ProcessTime, ColorRef(0));
+					//m_ResultDlg.m_SpreadTabDlg.Invalidate(FALSE);
+				}
+
+				if (pDoc->m_bSpreadCondition)
+				{
+					m_ResultDlg.m_SpreadTabDlg.spread_edit.SetWindowTextA("OK");
+				}
+				else
+					m_ResultDlg.m_SpreadTabDlg.spread_edit.SetWindowTextA("NG");
+
+				m_XCount++;
+			}
+		}
 		theApp.m_TchartFlag = false;
 	}
 }
@@ -284,8 +292,14 @@ void CResultView::UpdateResult()
 COLORREF CResultView::ColorRef(int series_idx)
 {
 	BYTE R = 0, G = 0, B = 0;
+
 	switch (series_idx)
 	{
+	case WHITE_COLOR:
+		R = 255;
+		G = 255;
+		B = 255;
+		break;
 	case 0:		// 빨
 		R = 255;
 		break;
@@ -344,9 +358,9 @@ COLORREF CResultView::ColorRef(int series_idx)
 
 void CResultView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {
-	if(lHint<2 ) return;
+	if(lHint < 2 ) return;
 
-	if(lHint<4)	{
+	if(lHint < 4)	{
 		//실제 Updata를 동작시키는 부분
 		UpdateResult();
 	}
@@ -388,6 +402,7 @@ void CResultView::InitROIData()
 	
 	setFont();
 
+	// Create the Max Tempurature Chart
 	for (int i = 0; i < pDoc->m_ROICount; i++)
 	{
 		str.Format("%d", i+1);
@@ -395,19 +410,23 @@ void CResultView::InitROIData()
 		m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).SetTitle(str);
 		m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).SetLegendTitle(str);
 		m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).SetColor(ColorRef(i));
-		m_ResultDlg.m_MinTabDlg.m_Min_Chart.AddSeries(0);
-		m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).SetTitle(str);
-		m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).SetLegendTitle(str);
-		m_ResultDlg.m_MinTabDlg.m_Min_Chart.Series(i).SetColor(ColorRef(i));
-		m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.AddSeries(0);
-		m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).SetTitle(str);
-		m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).SetLegendTitle(str);
-		m_ResultDlg.m_AvgTabDlg.m_Avg_Chart.Series(i).SetColor(ColorRef(i));
+
 	}
+
+	// Create the Spread Chart 
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).SetColor(ColorRef(WHITE_COLOR));		
+
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(1).SetColor(ColorRef(0));
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(2).SetColor(ColorRef(0));
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
+	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(3).SetColor(ColorRef(0));
 
 	int k = m_ResultDlg.m_MaxTabDlg.m_Max_Chart.GetSeriesCount();
 
-	// init for IRDX file open
+	// Init for IRDX file open
 	if (pDoc->m_OpenMode == 1)
 	{
 		m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
@@ -425,5 +444,14 @@ void CResultView::setFont()
 		DEFAULT_QUALITY, DEFAULT_PITCH, _T("고딕체"));
 	m_sFont.CreateFontA(21, 7, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
 		DEFAULT_QUALITY, DEFAULT_PITCH, _T("고딕체"));
+}
 
+HBRUSH CResultView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CView::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  여기서 DC의 특성을 변경합니다.
+
+	// TODO:  기본값이 적당하지 않으면 다른 브러시를 반환합니다.
+	return hbr;
 }

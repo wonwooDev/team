@@ -12,6 +12,7 @@
 #include "PyroSoftMDoc.h"
 #include "MainFrm.h"
 #include "ChildFrm.h"
+#include "GlassFlowView.h"
 #include "ResultView.h"
 #include "ResultDlg.h"	
 #include "ROIGridView.h"
@@ -19,8 +20,8 @@
 #include "windows.h"
 #include "MMSystem.h" 
 #include <afxmt.h>
-
 #include <propkey.h>
+
 
 
 #ifdef _DEBUG
@@ -48,14 +49,41 @@ BEGIN_MESSAGE_MAP(CPyroSoftMDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_DEVICE_DO_STOP, &CPyroSoftMDoc::OnUpdateDeviceDoStop)
 	ON_COMMAND(ID_DATAACQUISITION_SHOWMIN, &CPyroSoftMDoc::OnDataacquisitionShowmin)
 	ON_UPDATE_COMMAND_UI(ID_DATAACQUISITION_SHOWMIN, &CPyroSoftMDoc::OnUpdateDataacquisitionShowmin)
+
 	ON_COMMAND(ID_FOCUS_N, &CPyroSoftMDoc::OnButtonFocusN)
-	ON_COMMAND(ID_FOCUS_N_STEP, &CPyroSoftMDoc::OnButtonFocusNStep)
-	ON_COMMAND(ID_FOCUS_F_STEP, &CPyroSoftMDoc::OnButtonFocusFStep)
-	ON_COMMAND(ID_FOCUS_F, &CPyroSoftMDoc::OnButtonFocusF)
 	ON_UPDATE_COMMAND_UI(ID_FOCUS_N, &CPyroSoftMDoc::OnUpdateFocusN)
-	ON_UPDATE_COMMAND_UI(ID_FOCUS_N_STEP, &CPyroSoftMDoc::OnUpdateFocusNStep)
-	ON_UPDATE_COMMAND_UI(ID_FOCUS_F_STEP, &CPyroSoftMDoc::OnUpdateFocusFStep)
+	ON_COMMAND(ID_FOCUS_F, &CPyroSoftMDoc::OnButtonFocusF)
 	ON_UPDATE_COMMAND_UI(ID_FOCUS_F, &CPyroSoftMDoc::OnUpdateFocusF)
+	ON_COMMAND(ID_FOCUS_N_STEP, &CPyroSoftMDoc::OnButtonFocusNStep)
+	ON_UPDATE_COMMAND_UI(ID_FOCUS_N_STEP, &CPyroSoftMDoc::OnUpdateFocusNStep)
+	ON_COMMAND(ID_FOCUS_F_STEP, &CPyroSoftMDoc::OnButtonFocusFStep)
+	ON_UPDATE_COMMAND_UI(ID_FOCUS_F_STEP, &CPyroSoftMDoc::OnUpdateFocusFStep)
+
+	ON_COMMAND(ID_DATAPLAYER_PREVIOUSRECORD, &CPyroSoftMDoc::OnDataplayerPreviousrecord)
+	ON_UPDATE_COMMAND_UI(ID_DATAPLAYER_PREVIOUSRECORD, &CPyroSoftMDoc::OnUpdateDataplayerPreviousrecord)
+	ON_COMMAND(ID_DATAPLAYER_NEXTRECORD, &CPyroSoftMDoc::OnDataplayerNextrecord)
+	ON_UPDATE_COMMAND_UI(ID_DATAPLAYER_NEXTRECORD, &CPyroSoftMDoc::OnUpdateDataplayerNextrecord)
+	ON_COMMAND(ID_DATAPLAYER_PLAY, &CPyroSoftMDoc::OnDataplayerPlay)
+	ON_UPDATE_COMMAND_UI(ID_DATAPLAYER_PLAY, &CPyroSoftMDoc::OnUpdateDataplayerPlay)
+	ON_COMMAND(ID_DATAPLAYER_STOP, &CPyroSoftMDoc::OnDataplayerStop)
+	ON_UPDATE_COMMAND_UI(ID_DATAPLAYER_STOP, &CPyroSoftMDoc::OnUpdateDataplayerStop)
+
+	ON_COMMAND(ID_LEFT_SIDE_BTN, &CPyroSoftMDoc::OnSwitchLeftSide)
+	ON_UPDATE_COMMAND_UI(ID_LEFT_SIDE_BTN, &CPyroSoftMDoc::OnUpdateSwitchLeftSide)
+	ON_COMMAND(ID_RIGHT_SIDE_BTN, &CPyroSoftMDoc::OnSwitchRightSide)
+	ON_UPDATE_COMMAND_UI(ID_RIGHT_SIDE_BTN, &CPyroSoftMDoc::OnUpdateSwitchRightSide)
+
+	//ON_COMMAND(ID_ROI_DRAW, &CPyroSoftMDoc::OnPOIDraw)
+	//ON_UPDATE_COMMAND_UI(ID_ROI_DRAW, &CPyroSoftMDoc::OnUpdatePOIDraw)
+	//ON_COMMAND(ID_ROI_DELETE, &CPyroSoftMDoc::OnPOIDelete)
+	//ON_UPDATE_COMMAND_UI(ID_ROI_DELETE, &CPyroSoftMDoc::OnUpdatePOIDelete)
+	//ON_COMMAND(ID_ROI_MOVE, &CPyroSoftMDoc::OnRoiRefMove)
+	//ON_UPDATE_COMMAND_UI(ID_ROI_MOVE, &CPyroSoftMDoc::OnUpdateRoiRefMove)
+
+	ON_COMMAND(ID_ZOOM_IN, &CPyroSoftMDoc::OnButtonZoomin)
+	ON_COMMAND(ID_ZOOM_OUT, &CPyroSoftMDoc::OnButtonZoomout)
+	ON_UPDATE_COMMAND_UI(ID_ZOOM_IN, &CPyroSoftMDoc::OnUpdateButtonZoomin)
+	ON_UPDATE_COMMAND_UI(ID_ZOOM_OUT, &CPyroSoftMDoc::OnUpdateButtonZoomout)
 END_MESSAGE_MAP()
 
 
@@ -63,35 +91,63 @@ END_MESSAGE_MAP()
 
 CPyroSoftMDoc::CPyroSoftMDoc()
 {
-	m_OpenMode = 1;			// 1:IRDX, 2:Simulation, 3:Device
+	BROI = new CBROI();
+	//POI = new CPROI();
+	//LOI = new CLROI();
+	//ROI = new CTROI();
+	for (int i = 0; i < MAX_EROI_CNT; i++)
+		EROI[i] = new CEROI();
 
-	m_nDDAQDeviceNo = 0;	///< invalid or offline
+	m_GFV_Hwnd = NULL;
+
+	m_RHKStream = NULL;
+
+	m_OpenMode = 1;					// 1:IRDX, 2:Simulation, 3:Device
+
+	m_nDDAQDeviceNo = 0;			///< invalid or offline
 	m_hIRDX_DEVICE = INVALID_HANDLE_VALUE;
 
 	m_bAcqIsRunning = false;
 
+	m_bSpreadCondition = true;		// Spread Condition "OK" == true, "NG" == false
+
 	m_bStretchDIB = true;
+	m_bUpdateProperty = false;
+
+	m_AppendIRDXFile = true;
+	m_SaveEveryRecord = false;
+
+	m_bDataPlay = false;
+	m_bRawDataSave = false;
+	m_bMaxPointEnable = false;
+	m_RefAreaFlag = false;
+	m_ChartFlag = false;
+	m_RHK_logging = false;
+	m_bShowPointer = true;
+	m_RHK_log_done = false;
+	columnUpdateFlag = false;
+	m_ROI_check_flag = false;
+	m_bPreviousBtnClick = false;		// IRDX 화면 이전 버튼
+
+	//// Property Flags ////
+	m_ZoneInfoEnable = false;			// Result Dlg의 Zone Info 버튼의 활성화 여부
+	m_Auto_ET_Mode = false;				// 자동 방사율,투과율 모드
+	indexMoveFlag = false;
+	m_cursorShow = false;				// 커서 온도값 show
+	m_ROIShow = false;					// 관심영역 show
+	m_maxPointerShow = false;			// 최대 온도값 show
+	m_minPointerShow = false;			// 최소 온도값 show
+	m_triggerLoggingFirst = false;
+	m_isStopMotion = false;
 
 	m_hIRDX_Doc = INVALID_HANDLE_VALUE;
 	m_hIRDX_READ = INVALID_HANDLE_VALUE;
 	m_hIRDX_WRITE = INVALID_HANDLE_VALUE;
 
-	m_AppendIRDXFile = true;
-	m_SaveEveryRecord = false;
-
 	m_hEventData = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	m_NoDS = m_IdxDS = 0;
-
-	m_CamHFOV = MAXHFOV;
-	m_CamVFOV = MAXVFOV;
-
-	m_bDataPlay = false;
-
-	m_bRawDataSave = false;
-
-	m_bMaxPointEnable = false;
-
+	
 	m_MaxTemp = m_MinTemp = 0.0f;
 	m_FPS = 0.0f;
 	m_Emissivity = m_Transmission = m_AmbTemp = 0.0f;
@@ -103,7 +159,6 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	m_ScaleIsoTherm = 0.0f;
 
 	m_AcqIndex = 0;
-	m_FocusLocation = 0;
 
 	m_PixelX = m_PixelY = 0;
 
@@ -126,28 +181,10 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 
 	m_bFrameNum = 0;
 	m_RcpStartDist = 0;
-	m_RefAreaFlag = false;
-	m_ChartFlag = false;
-	m_RHK_logging = false;
-	m_Auto_ET_Mode = false;
 
-	m_bShowPointer = true;
-
-	m_RHK_log_done = false;
-
-	columnUpdateFlag = false;
-
-	m_ROI_check_flag = false;
-	indexMoveFlag = false;
-	m_NearFromDev = true;
-	m_TriggerOnOff = false;
-
-	m_cursorShow = false;
-	m_ROIShow = false;
-	m_maxPointerShow = false;
-	m_minPointerShow = false;
-	m_triggerLoggingFirst = false;
+	m_OOIShowNum = 0;
 	m_POIShowNum = 0;
+	m_max_idxDS = 0;
 
 	m_comp_ROICount = 0;
 
@@ -158,6 +195,8 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	m_BaseROI.rx = 0;
 	m_BaseROI.by = 0;
 
+	m_ExROICnt =0;
+
 	m_SelXPxlChrt_idx = 0;
 	m_SelYPxlChrt_idx = 0;
 
@@ -167,11 +206,38 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	m_lx_pxl_avg_idx = 0;
 
 	m_ROI_loop_count = 0;
-	m_TriggerDist = 0;
 
-	m_ZoomMode = 1;		//100%
+	m_camStatus = 0;
+
+	m_ROIBufferCnt = 0;
+	m_ROIBufferLimit = 0;
+	m_ROICatchCnt = 0;
+
+	limitOfTemperOver = 0;
+	gapOfPosition = 0;
+	limitOfXMaintain = 0;
+
+	m_bCheckSpread = false;
+	m_spreadTempr = 0;
+	m_spreadMaxTempr = 0;
+	m_spreadDetctRange = 0;
+	m_spreadlimitTempr = 0;
+
+	// varables in the calROI function 
+	//totalIndexCount = 0;
+
+	// Recipe
+	m_NumOfZone = 0;
+	m_RowNum = 0;
+	m_ColNum = 0;
+
+	// Zoom
+	m_ZoomMode = 1;			//100%
 	m_ZoomRatio = 0.0f;
 
+	m_BROI_minSize = 10;		// Base ROI init size
+
+	// Step Diff
 	m_upStepCoeff = 0.0f;
 	m_middleStepCoeff = 0.0f;
 	m_downStepCoeff = 0.0f;
@@ -183,13 +249,15 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	for (int i = 0; i < MAX_POI_NUM; i++)
 		POI_TemperatureArray[i] = 0;
 
-	for (int i = 0; i<MAX_ROI_NUM; i++)
+	for (int i = 0; i<MAX_ROI_CNT; i++)
 	{
 		max_x[i] = 0;
 		min_x[i] = 0;
 		max_y[i] = 0;
 		min_y[i] = 0;
 		temptt[i] = 0;
+
+		m_ROIBuffer[i] = 0;
 	}
 
 	for (int i = 0; i < MAX_ET_PER_DISTANCE; i++)
@@ -198,7 +266,7 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 		m_ET_Emissivity[i] = 0;
 		m_ET_Transmission[i] = 0;
 	}
-	for (int i = 0; i < MAX_ROI_NUM * 2; i++)
+	for (int i = 0; i < MAX_ROI_CNT * 2; i++)
 	{
 		m_SelXPixelChart[i] = 0;
 		m_SelYPixelChart[i] = 0;
@@ -208,14 +276,16 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 		m_row_projection[i] = 0;
 		m_lRow_projection[i] = 0;
 	}
+
 	for (size_t i = 0; i < MAX_Y_PIXEL; i++)
 		m_col_projection[i] = 0;
+
 	for (int i = 0; i < MAX_DISCRIMINANT_NUM; i++)
 	{
 		m_discrim_arr[i] = 0;
 		m_inclin_arr[i] = 0;
 	}
-	for (int i = 0; i < MAX_ROI_NUM; i++)
+	for (int i = 0; i < MAX_ROI_CNT; i++)
 	{
 		m_baseROILXTemp[i] = 0;
 		m_baseROIRXTemp[i] = 0;
@@ -228,13 +298,7 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 			m_by_pxl_avg[i][j] = 0;
 		}
 	}
-
-
-	//Recipe
-	m_NumOfZone = 0;
-	m_RowNum = 0;
-	m_ColNum = 0;
-
+	
 	for (int i = 0; i < MAX_ZONE; i++)
 	{
 		m_ZoneDistance[i] = 0;
@@ -247,24 +311,21 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	pResultData = m_Result;
 }
 
-void CALLBACK ClientTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2)
-{
+void CALLBACK ClientTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2) {
 	theApp.m_StatusInfFlag = true;
 	theApp.m_TchartFlag = true;
-	theApp.m_TimerFlag = true;
-	//theApp.m_
 }
 
-void CALLBACK LaserTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2)
-{
-	theApp.DAQ_LASER_DAQmxReadAnalogScalarF64(theApp.DAQ_TaskHandle, 0, &theApp.m_Laser_Distance, NULL);
+void CALLBACK LoggingIntervalTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2) {
+	theApp.m_TimerFlag = true;
 }
+
 
 CPyroSoftMDoc::~CPyroSoftMDoc()
 {
 	if (pFrameBuffer != NULL)
 		delete[] pFrameBuffer;
-
+	
 	CloseHandle(m_hEventData);
 }
 
@@ -373,7 +434,6 @@ void CPyroSoftMDoc::Dump(CDumpContext& dc) const
 
 #endif //_DEBUG
 
-
 // CPyroSoftMDoc 명령
 
 /////////////////////////////////////////////////////////////////////////////
@@ -423,14 +483,17 @@ BOOL CPyroSoftMDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		LoadETPerDistance();
 
 		((CResultView *)pView)->m_ResultDlg.pDoc = this;
+
 		((CResultView *)pView)->m_MaxTabDlg.pDoc = this;
-		((CResultView *)pView)->m_MinTabDlg.pDoc = this;
-		((CResultView *)pView)->m_AvgTabDlg.pDoc = this;
+		((CResultView *)pView)->m_SpreadTabDlg.pDoc = this;
+		((CResultView *)pView)->m_ResultDlg.m_SpreadTabDlg.pDoc = this;
+		//((CResultView *)pView)->m_AvgTabDlg.pDoc = this;
 		((CResultView *)pView)->InitROIData();
 		((CROIGridView *)pPView)->InitStatusData();
 	//}
 	///////////////////////////////////////////////////
-
+		theApp.pDocTemp = this;
+		
 	theApp.m_bFileOpen = TRUE;		// IRDX 파일 열때 한번 TRUE 변환 (초기값 false)
 
 	return TRUE;
@@ -478,8 +541,39 @@ void CPyroSoftMDoc::OnIdle()
 		}
 	}
 }
-/////////////////////////////////////////////////////////////////////////////
 
+void CPyroSoftMDoc::IRDXUpdate()
+{
+	GetCamNBufferSize();
+
+	// Update Main View //////////////////////////
+	UpdateAllViews(NULL, 1);
+	
+	if (pFrameBuffer == NULL)
+	{
+		AfxMessageBox(IDS_ERROR_ALLOCMEM);
+		return;
+	}
+
+	// get data
+	if (!theApp.DDAQ_IRDX_PIXEL_GetData(m_hIRDX_Doc, pFrameBuffer, BufSize))
+	{
+		delete[] pFrameBuffer;
+		return;
+	}
+	
+	// Extract Spot Area ****************************************************
+
+	CalculateResult(PPointArr.GetCount(), sizeX, sizeY, pFrameBuffer);
+
+	if(!m_bDataPlay)
+		theApp.m_pPropertyWnd->UpdateDataSet();
+
+	// Update GlassView ///////////////
+	UpdateAllViews(NULL, 3);
+
+	theApp.DDAQ_DEVICE_DO_ENABLE_NextMsg(m_nDDAQDeviceNo);
+}
 
 double CPyroSoftMDoc::getLineAvgTemp(float *pBuf, unsigned short size)
 {
@@ -494,8 +588,6 @@ double CPyroSoftMDoc::getLineAvgTemp(float *pBuf, unsigned short size)
 	return sum / size;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
 // for irdx file
 void CPyroSoftMDoc::CalculateResult(int index, int sizeX, int sizeY, float* pBuffer)
 {
@@ -503,12 +595,402 @@ void CPyroSoftMDoc::CalculateResult(int index, int sizeX, int sizeY, float* pBuf
 	//if(pBuffer != NULL)
 	CalROI(index, sizeX, sizeY, pBuffer);
 }
+//
+///////  ROI 계산 ////////  
+//void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
+//{
+//	/// pBuffer의 주소값이 아닌 안의 배열에 값이 존재 하지 않는 조건문으로 변경해야한다.
+//	bool isNext_LxPos = TRUE;			// bool 배열로 함수인자를 2개에서 1개로 줄임
+//	bool isNext_RxPos = FALSE;
+//	bool isNext_TyPos = TRUE;
+//	bool isNext_ByPos = FALSE;
+//	float temp_val = 0;
+//	int temp_posLeftX, temp_posRightX, temp_posTopY, temp_posBottomY;	// 임시 온도값 저장
+//	
+//	// ROI 좌표 정보를 넘겨줄 배열
+//	int arr_PosLeftX[MAX_ROI_CNT] = { 0 };
+//	int arr_PosRightX[MAX_ROI_CNT] = { 0 };
+//	int arr_PosTopY[MAX_ROI_CNT] = { 0 };
+//	int arr_PosBottomY[MAX_ROI_CNT] = { 0 };
+//
+//	// 임시적으로 ROI 좌표 정보를 가지고 있을 배열
+//	int arr_tempPosLeftX[MAX_ROI_CNT] = { 0 };
+//	int arr_tempPosRightX[MAX_ROI_CNT] = { 0 };
+//	int arr_tempPosTopY[MAX_ROI_CNT] = { 0 };
+//	int arr_tempPosBottomY[MAX_ROI_CNT] = { 0 };
+//
+//	// Gap 차이 -> countOfRXMaintain 위해
+//	int arr_distctLeftX[MAX_ROI_CNT] = { 0 };
+//	int arr_distctRightX[MAX_ROI_CNT] = { 0 };
+//	int arr_distctTopY[MAX_ROI_CNT] = { 0 };
+//	int arr_distctBottomY[MAX_ROI_CNT] = { 0 };
+//
+//	int idx_tempPosX = 0,pre_idx_tempPosX = 0, idx_tempPosY = 0;
+//
+//	// 추후 변수 위치 & 변수 값 수정 필요
+//	int totalIndexCount = 0;						// x축을 쭉 스캔 했을 시 저장 된 총 ROI 횟수
+//	int pre_totalIndexCnt = 0;
+//	int countOfTemperOver = 0;						// x축을 스캔 할 시 임계온도를 넘은 횟수
+//	int countOfLXMaintain[MAX_ROI_CNT] = { 0 };		// ROI의 left_x축이 몇번 y축 방향으로 유지 된 횟수
+//	int countOfRXMaintain[MAX_ROI_CNT] = { 0 };		// ROI의 right_x축이 몇번 y축 방향으로 유지 된 횟수
+//
+//	bool isArrFirst[MAX_ROI_CNT] = { 0 };
+//	int	sumTemp[MAX_ROI_CNT] = { 0 };
+//	int	pixelCount[MAX_ROI_CNT] = { 0 };
+//
+//	int pre_min_x[MAX_ROI_CNT] = { 0 };
+//	int pre_max_x[MAX_ROI_CNT] = { 0 };
+//	int pre_min_y[MAX_ROI_CNT] = { 0 };
+//	int pre_max_y[MAX_ROI_CNT] = { 0 };
+//
+//	float pre_TMin[MAX_ROI_CNT] = { 0.0 };
+//	float pre_TMax[MAX_ROI_CNT] = { 0.0 };
+//
+//	for (int i = 0; i < MAX_ROI_CNT; i++)			// 함수로 뺄것
+//	{
+//		arr_PosLeftX[i] = 0;
+//		arr_PosRightX[i] = 0;
+//		arr_PosTopY[i] = 0;
+//		arr_PosBottomY[i] = 0;
+//
+//		arr_tempPosLeftX[i] = 0;
+//		arr_tempPosRightX[i] = 0;
+//		arr_tempPosTopY[i] = 0;
+//		arr_tempPosBottomY[i] = 0;
+//
+//		isArrFirst[i] = TRUE;
+//		sumTemp[i] = 0;
+//		pixelCount[i] = 0;
+//
+//		pre_min_x[i] = 0;
+//		pre_max_x[i] = 0;
+//		pre_min_y[i] = 0;
+//		pre_max_y[i] = 0;
+//
+//		m_ResultData.TMin[i] = 0;
+//		m_ResultData.TMinX[i] = 0;
+//		m_ResultData.TMinY[i] = 0;
+//
+//		m_ResultData.TMax[i] = 0;
+//		m_ResultData.TMaxX[i] = 0;
+//		m_ResultData.TMaxY[i] = 0;
+//	}
+//
+//	for (int y = 0; y < sizeY; y++)
+//	{
+//		for (int x = 0; x < sizeX; x++)
+//		{
+//			temp_val = pBuffer[sizeX*y + x];
+//
+//			// Threashold 보다 높은 값만 계산
+//			if (temp_val < m_Threshold)
+//			{
+//				// 설정한 임계온도 보다 높은 점을 일정 이상 반복하였을 시 오른쪽 X 좌표를 저장 하기 위한 조건
+//				if (isNext_RxPos && countOfTemperOver > limitOfTemperOver)
+//				{
+//					arr_tempPosRightX[idx_tempPosX++] = x;
+//					isNext_LxPos = TRUE;
+//					isNext_RxPos = FALSE;
+//
+//					countOfTemperOver = 0;
+//				}
+//				else
+//				{
+//					arr_tempPosLeftX[idx_tempPosX] = 0;
+//					isNext_LxPos = TRUE;
+//					isNext_RxPos = FALSE;
+//				}
+//				
+//				continue;
+//			}
+//			
+//			// 임계 온도 보다 높은 기준을 충족 시
+//			countOfTemperOver++;		
+//			
+//			// temporary n번째 ROI left_x값을 계산 하는 조건이 만족 하느냐?
+//			if (isNext_LxPos)		
+//			{
+//				if (x != 0 ) {
+//					arr_tempPosLeftX[idx_tempPosX] = x;
+//					isNext_LxPos = FALSE;
+//					isNext_RxPos = TRUE;
+//				}
+//			}
+//		}
+//
+//		if (idx_tempPosX > 2)	// 맨 가에 2개의 불필요한 ROI 제거
+//		{
+//			bool firstComp = TRUE;
+//			int max, min;
+//			int compArr[MAX_ROI_CNT] = { 0 };
+//
+//			for (int i = 1; i < idx_tempPosX - 1; i++)
+//			{
+//				compArr[i] = arr_tempPosRightX[i] - arr_tempPosLeftX[i];
+//
+//				if (firstComp)
+//				{
+//					firstComp = FALSE;
+//
+//					max = compArr[i];
+//					min = compArr[i];
+//				}
+//				else
+//				{
+//					if (compArr[i] > max)
+//						max = compArr[i];
+//
+//					if (compArr[i] < min)
+//						min = compArr[i];
+//				}
+//			}
+//
+//			//if (max - min < 3 && max != min)
+//			if (max - min < 3 && idx_tempPosX > 3)
+//			{
+//				if (totalIndexCount == 0)
+//				{
+//					totalIndexCount = idx_tempPosX;
+//
+//					arr_tempPosTopY[idx_tempPosY] = y;
+//
+//					for (int i = 0; i < totalIndexCount; i++)
+//					{
+//						arr_distctLeftX[i] = arr_tempPosLeftX[i];
+//						arr_distctRightX[i] = arr_tempPosRightX[i];
+//
+//						arr_PosLeftX[i] = arr_tempPosLeftX[i];
+//						arr_PosRightX[i] = arr_tempPosRightX[i];
+//					}
+//				}
+//				else if (pre_idx_tempPosX == idx_tempPosX)
+//				{
+//					for (int i = 1; i < idx_tempPosX-1; i++)
+//					{
+//						if (abs(arr_tempPosLeftX[i] - arr_distctLeftX[i]) < gapOfPosition)		// +-gapPosition
+//						{
+//							if (arr_tempPosLeftX[i] - arr_distctLeftX[i] >= 0)
+//							{
+//								arr_distctLeftX[i] = arr_tempPosLeftX[i];
+//								//arr_PosLeftX[i] = arr_distctLeftX[i];
+//							}
+//
+//							countOfLXMaintain[i]++;
+//						}
+//						else
+//						{
+//							if (countOfLXMaintain[i] > limitOfXMaintain)
+//								arr_PosLeftX[i] = arr_distctLeftX[i];
+//
+//							arr_distctLeftX[i] = arr_tempPosLeftX[i];
+//						}
+//
+//
+//						if (abs(arr_tempPosRightX[i] - arr_distctRightX[i]) < gapOfPosition)		// +-gapPosition
+//						{
+//							if (arr_tempPosRightX[i] - arr_distctRightX[i] <= 0)
+//							{
+//								arr_distctRightX[i] = arr_tempPosRightX[i];
+//								//arr_PosRightX[i] = arr_distctRightX[i];
+//							}
+//
+//							countOfRXMaintain[i]++;
+//						}
+//						else
+//						{
+//							if (countOfRXMaintain[i] > limitOfXMaintain)
+//								arr_PosRightX[i] = arr_distctRightX[i];
+//
+//							arr_distctRightX[i] = arr_tempPosRightX[i];
+//						}
+//					}
+//				}
+//				else
+//				{
+//					int maintainCnt = 0;
+//
+//					for (int i = 0; i < idx_tempPosX; i++)
+//					{
+//						if (countOfLXMaintain[i] > limitOfXMaintain && countOfRXMaintain[i] > limitOfXMaintain)
+//							maintainCnt++;
+//
+//					}
+//
+//					if (maintainCnt == (idx_tempPosX - 2))
+//					{
+//						totalIndexCount = idx_tempPosX;
+//						arr_tempPosTopY[0] = y - (countOfLXMaintain[1] + countOfRXMaintain[1]) / 2;
+//
+//						for (int i = 0; i < totalIndexCount; i++)
+//						{
+//							//arr_PosLeftX[i] = arr_tempPosLeftX[i];
+//							//arr_PosRightX[i] = arr_tempPosRightX[i];
+//						}
+//					}
+//
+//				}
+//			}// End of "if (max - min < 3 && max != min)"
+//		}// End of "if (idx_tempPosX > 2)"
+//
+//		for (int i = 0; i < idx_tempPosX; i++) {
+//			arr_tempPosLeftX[i] = 0;
+//			arr_tempPosRightX[i] = 0;
+//		}
+//
+//		pre_idx_tempPosX = idx_tempPosX;	
+//		idx_tempPosX = 0;
+//		idx_tempPosY = 0;
+//
+//		countOfTemperOver = 0;
+//
+//		isNext_LxPos = TRUE;
+//		isNext_RxPos = FALSE;
+//	}
+//
+//	for (int i = 1; i < totalIndexCount; i++)
+//	{
+//		//if (isNext_ByPos && countOfLXMaintain[i] > limitOfXMaintain && countOfRXMaintain[i] > limitOfXMaintain)
+//			arr_tempPosBottomY[idx_tempPosY++] = arr_tempPosTopY[0] + (countOfLXMaintain[1] + countOfRXMaintain[1]) / 2;;
+//	}
+//
+//	// y값 데이터 저장
+//	for (int i = 0; i < totalIndexCount; i++) {
+//		arr_PosTopY[i] = arr_tempPosTopY[0];
+//		arr_PosBottomY[i] = arr_tempPosBottomY[i];
+//	}
+//
+//	for (int i = 0; i < totalIndexCount - 2; i++)
+//	{
+//		pre_min_x[i] = min_x[i];
+//		pre_max_x[i] = max_x[i];
+//		pre_min_y[i] = min_y[i];
+//		pre_max_y[i] = max_y[i];
+//
+//		min_x[i] = arr_PosLeftX[i+1];
+//		max_x[i] = arr_PosRightX[i+1];
+//		min_y[i] = arr_PosTopY[i+1];
+//		//if(arr_PosBottomY[i - 1] != 0)
+//			//max_y[i] = arr_PosBottomY[i-1];
+//		if(arr_PosBottomY[i] != 0)
+//			max_y[i] = arr_PosBottomY[i];
+//	}
+//
+//	// totalIndexCount 값 보다 큰 인덱스 초기화
+//	if (totalIndexCount != 0)
+//	{
+//		for (int i = totalIndexCount - 2; i < MAX_ROI_CNT; i++) {
+//			min_x[i] = 0;
+//			max_x[i] = 0;
+//			min_y[i] = 0;
+//			max_y[i] = 0;
+//		}
+//	}
+//	else
+//	{
+//		for (int i = 0; i < MAX_ROI_CNT; i++)
+//		{
+//			min_x[i] = 0;
+//			max_x[i] = 0;
+//			min_y[i] = 0;
+//			max_y[i] = 0;
+//		}
+//	}
+//
+//
+//	// 최대, 최소, 평균 온도값 찾기
+//	for (int k = 0; k < totalIndexCount - 2; k++)
+//	{
+//		pre_TMin[k] = m_ResultData.TMin[k];
+//		pre_TMax[k] = m_ResultData.TMax[k];
+//
+//		SearchTemperature(k, pBuffer, pixelCount, sumTemp, isArrFirst);
+//
+//		if (m_ResultData.TMin[k] < pre_TMin[k] - (pre_TMin[k] * 0.05))
+//		{
+//			min_x[k] = pre_min_x[k];
+//			max_x[k] = pre_max_x[k];
+//			min_y[k] = pre_min_y[k];
+//			max_y[k] = pre_max_y[k];
+//
+//			SearchTemperature(k, pBuffer, pixelCount, sumTemp, isArrFirst);
+//		}
+//
+//		if(pixelCount[k] != 0)
+//			m_ResultData.TAvg[k] = sumTemp[k] / pixelCount[k];
+//	}
+//
+//	for (int i = 0; i < m_ROICount; i++)
+//	{
+//		if (m_ResultData.TMin[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+//			m_ResultData.TMin[i] = 0.0f;
+//		else if (m_ResultData.TMin[i] < 600)
+//			m_ResultData.TMin[i] = 600.0f;
+//		if (m_ResultData.TMax[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+//			m_ResultData.TMax[i] = 0.0f;
+//		if (m_ResultData.TAvg[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+//			m_ResultData.TAvg[i] = 0.0f;
+//
+//		if (min_y[i] == max_y[i])
+//		{
+//			m_ResultData.TMin[i] = 0;
+//			m_ResultData.TMinX[i] = 0;
+//			m_ResultData.TMinY[i] = 0;
+//
+//			m_ResultData.TMax[i] = 0;
+//			m_ResultData.TMaxX[i] = 0;
+//			m_ResultData.TMaxY[i] = 0;
+//			
+//			m_ResultData.TAvg[i] = 0;
+//		}
+//	}
+//
+//	//m_ROI_loop_count = m_SelXPxlChrt_idx;
+//	m_ROI_loop_count = totalIndexCount-2;
+//
+//}
+//
+//inline void CPyroSoftMDoc::SearchTemperature(int k, float *pBuffer, int *pixelCount, int *sumTemp, bool *isArrFirst)
+//{
+//	for (int j = min_y[k]; j <= max_y[k]; j++)
+//	{
+//		for (int i = min_x[k]; i <= max_x[k]; i++)
+//		{
+//			float val = pBuffer[sizeX*j + i];
+//
+//			pixelCount[k]++;
+//
+//			sumTemp[k] += val;
+//
+//			if (isArrFirst[k]) {
+//				m_ResultData.TMin[k] = m_ResultData.TMax[k] = val;
+//				isArrFirst[k] = FALSE;
+//			}
+//			else {
+//				if (val < m_ResultData.TMin[k])
+//				{
+//					m_ResultData.TMin[k] = val;
+//					m_ResultData.TMinX[k] = i;
+//					m_ResultData.TMinY[k] = j;
+//				}
+//				else if (val > m_ResultData.TMax[k])
+//				{
+//					m_ResultData.TMax[k] = val;
+//					m_ResultData.TMaxX[k] = i;
+//					m_ResultData.TMaxY[k] = j;
+//				}
+//			}
+//		}
+//	}
+//}
 
-/////  대상체의 온도가 확연하게 뜨거워 졌을 시 //////////////
+
+/////  ROI 계산 ////////		mody 10-01
 void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
 {
 	/// pBuffer의 주소값이 아닌 안의 배열에 값이 존재 하지 않는 조건문으로 변경해야한다.
 
+	int BROI_lx, BROI_rx, BROI_ty, BROI_by;
+	int EROI_lx, EROI_rx, EROI_ty, EROI_by;
 	int arr_count = 0, max_arr = 0, hit_count = 0;	
 	int	m_baseROILXTmp_idx = 0;
 	int m_baseROIRXTmp_idx = 0;
@@ -519,14 +1001,13 @@ void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
 	int m_col_max = 0;		
 	int m_col_min = 0;		
 
-	float sumTemp[MAX_ROI_NUM] = { 0.0f };
-	int pixelCount[MAX_ROI_NUM] = { 0 };
-	bool isArrFirst[MAX_ROI_NUM];
+	float sumTemp[MAX_ROI_CNT] = { 0.0f };
+	int pixelCount[MAX_ROI_CNT] = { 0 };
+	bool isArrFirst[MAX_ROI_CNT];
 	bool isColFirst = false;
 	bool m_inclin_up_flag = false;
 	bool m_inclin_zero_flag = false;
 	bool m_inclin_down_flag = false;
-	//float WidthPerPixel = (m_CamDistance / tan(PI / 180 * (90 - m_CamHFOV / 2))) / (MAX_X_PIXEL / 2);
 	int gapX = 0, gapY = 0;
 
 	for (int i = 0; i < m_ROICount; i++)	// ROI XY 좌표의 min, max 값 초기화
@@ -536,156 +1017,166 @@ void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
 		m_ResultData.TMaxX[i] = 0; m_ResultData.TMaxY[i] = 0;
 	}
 
-	for (int i = 0; i < MAX_ROI_NUM; i++)
-		isArrFirst[i] = true;
+	for (int i = 0; i < MAX_ROI_CNT; i++)
+isArrFirst[i] = true;
 
-	for (int i = 0; i < 512; i++)
-		m_row_projection[i] = 0;
+for (int i = 0; i < 512; i++)
+	m_row_projection[i] = 0;
 
-	for (int i = 0; i < 384; i++)
-		m_col_projection[i] = 0;
+for (int i = 0; i < 384; i++)
+	m_col_projection[i] = 0;
 
-	for (int i = 0; i < m_SelXPxlChrt_idx; i++)
-		m_SelXPixelChart[i] = 0;
-	m_SelXPxlChrt_idx = 0;
+for (int i = 0; i < m_SelXPxlChrt_idx; i++)
+	m_SelXPixelChart[i] = 0;
 
-	for (int i = 0; i < m_SelYPxlChrt_idx; i++)
-		m_SelYPixelChart[i] = 0;
-	m_SelYPxlChrt_idx = 0;
-	m_ROI_loop_count = 0;
-	/////////////////////////// 계산 /////////////////////////////////
+m_SelXPxlChrt_idx = 0;
 
-	if (m_BaseROI.rx != 0 && m_BaseROI.by != 0)
+for (int i = 0; i < m_SelYPxlChrt_idx; i++)
+	m_SelYPixelChart[i] = 0;
+
+m_SelYPxlChrt_idx = 0;
+m_ROI_loop_count = 0;
+
+BROI_lx = BROI->GetPosXY(X_LEFT);
+BROI_rx = BROI->GetPosXY(X_RIGHT);
+BROI_ty = BROI->GetPosXY(Y_TOP);
+BROI_by = BROI->GetPosXY(Y_BOTTOM);
+
+/////////////////////////// 계산 /////////////////////////////////
+
+if (BROI_rx != 0 && BROI_by != 0)
+{
+	for (int i = BROI_ty; i < BROI_by; i++)
 	{
-		for (int i = m_BaseROI.ty; i < m_BaseROI.by; i++)
+		for (int j = BROI_lx; j < BROI_rx; j++)
 		{
-			for (int j = m_BaseROI.lx; j < m_BaseROI.rx; j++)
+			float val = pBuffer[sizeX*i + j];
+
+			::CalArr(m_row_projection, val, j, (int)BROI_lx);
+
+			if (val < m_Threshold)
 			{
-				float val = pBuffer[sizeX*i + j];
-
-				//m_row_projection[j - m_BaseROI.lx] += val;
-				::CalArr(m_row_projection, val, j, (int)m_BaseROI.lx);
-
-				if (val < m_Threshold)
+				if (!isColFirst)
 				{
-					if (!isColFirst)
-					{
-						isColFirst = true;
-						m_col_max = i;
-						m_col_min = i;
-					}
-					else if (i > m_col_max)
-					{
-						m_col_max = i;
-					}
-					else if (i < m_col_min)
-					{
-						m_col_min = i;
-					}
-					//m_col_projection[i - m_BaseROI.ty] += val;
+					isColFirst = true;
+					m_col_max = i;
+					m_col_min = i;
 				}
+				else if (i > m_col_max)
+				{
+					m_col_max = i;
+				}
+				else if (i < m_col_min)
+				{
+					m_col_min = i;
+				}
+				//m_col_projection[i - m_BaseROI.ty] += val;
 			}
 		}
+	}
 
-		for (int i = BOXCAR; i < sizeof(m_row_projection) / sizeof(m_row_projection[0]) - BOXCAR; i++)	// x축의 projection 된 수 만큼
+	//for (int i = BOXCAR; i < sizeof(m_row_projection) / sizeof(m_row_projection[0]) - BOXCAR; i++)	// x축의 projection 된 수 만큼
+	//{
+
+	//}
+
+	CRect m_baseROI;
+	m_baseROI.left = BROI_lx;
+	m_baseROI.right = BROI_rx;
+	m_baseROI.top = BROI_ty;
+	m_baseROI.bottom = BROI_by;
+
+	::CalMeasure(pBuffer, &m_baseROI, &m_baseROIRXTmp_idx, m_upStepCoeff, m_middleStepCoeff, m_downStepCoeff, m_baseROILXTemp, m_baseROIRXTemp);
+
+	for (int i = 0; i < m_baseROIRXTmp_idx; i++)
+	{
+		if (abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) > 5)
+			min_x[m_SelXPxlChrt_idx] = m_baseROILXTemp[i];
+		if (abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) > 5)
+			max_x[m_SelXPxlChrt_idx] = m_baseROIRXTemp[i];
+
+		min_y[m_SelXPxlChrt_idx] = m_col_min;
+		max_y[m_SelXPxlChrt_idx] = m_col_max;
+
+		m_SelXPxlChrt_idx++;
+	}
+	
+	for (int j = 0; j < MAX_EROI_CNT; j++)
+	{
+		for (int i = 0; i < m_SelXPxlChrt_idx; i++)
 		{
-
-		}
-
-		CRect m_baseROI;
-		m_baseROI.left = m_BaseROI.lx;
-		m_baseROI.right = m_BaseROI.rx;
-		m_baseROI.top = m_BaseROI.ty;
-		m_baseROI.bottom = m_BaseROI.by;
-
-		::CalMeasure(pBuffer, &m_baseROI, &m_baseROIRXTmp_idx, m_upStepCoeff, m_middleStepCoeff, m_downStepCoeff, m_baseROILXTemp, m_baseROIRXTemp);
-		/*
-		for (int i = 0; i < sizeof(m_row_projection) / sizeof(m_row_projection[0]); i++)	// x축의 projection 된 수 만큼
-		{
-			if (m_row_projection[i] == 0) break;	// 온도값이 0인 부분은 볼 필요 없다.
-
-			if (m_discrim_idx == 4)
+			if (EROI[j]->GetDrawDone() == false)
+				break;
+			/*
+			if (EROI[j]->GetPosXY(X_LEFT) > min_y[i] && EROI[j]->GetPosXY(X_RIGHT) < max_y[i])
 			{
-				for (int i = 0; i < sizeof(m_discrim_arr) / sizeof(m_discrim_arr[0]) - 1; i++)	// n개의 판별점 저장
+				if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i] || EROI[j]->GetPosXY(Y_TOP) > min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < max_y[i])
 				{
-					m_discrim_arr[i] = m_discrim_arr[i + 1];
+					max_x[i] = 0;
+					min_x[i] = 0;
+					min_y[i] = 0;
+					max_y[i] = 0;
 				}
-				m_discrim_arr[m_discrim_idx - 1] = m_row_projection[i];
-
-				for (int j = 1; j < sizeof(m_discrim_arr) / sizeof(m_discrim_arr[0]); j++)	// 기울기 계산 후 기울기 배열에 값 넣는작업
+				else if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i])
 				{
-					m_inclin_arr[j - 1] = (m_discrim_arr[j] - m_discrim_arr[j - 1]) / (m_BaseROI.by - m_BaseROI.ty); //기울기 계산
-
-					if (m_baseROILXTmp_idx > 50 || m_baseROIRXTmp_idx > 50)
-						continue;
-
-					if (!m_inclin_up_flag && inclin_up < 3 && m_inclin_arr[j - 1] > m_upStepCoeff)		//시작 기울기
-					{
-						for (int i = 0; i < sizeof(m_inclin_arr) / sizeof(m_inclin_arr[0]); i++)
-							inclin_up++;
-					}
-					else if (inclin_up < 3)
-					{
-						inclin_up = 0;
-					}
-					else if (!m_inclin_zero_flag && inclin_up >= 3 && inclin_zero < 3 && m_inclin_arr[j - 1] <= m_middleStepCoeff)		//중간 기울기
-					{
-						inclin_zero++;
-						m_inclin_up_flag = true;
-
-						if (inclin_zero == 1)
-							m_baseROILXTemp[m_baseROILXTmp_idx++] = i + m_BaseROI.lx;	// 저장
-					}
-					else if (!m_inclin_down_flag && m_inclin_up_flag && inclin_zero >= 3 && inclin_down < 3 && m_inclin_arr[j - 1] < m_downStepCoeff)	// 종료 기울기
-					{
-						inclin_down++;
-						m_inclin_zero_flag = true;
-
-						if (inclin_down == 1)
-							m_baseROIRXTemp[m_baseROIRXTmp_idx++] = i + m_BaseROI.lx;	// 저장
-					}
-					else if (!m_inclin_down_flag && m_inclin_zero_flag && inclin_down >= 3)
-					{
-						m_inclin_down_flag = true;
-
-						inclin_up = 0;
-						inclin_zero = 0;
-						inclin_down = 0;
-
-						m_inclin_up_flag = false;
-						m_inclin_zero_flag = false;
-						m_inclin_down_flag = false;
-					}
+					max_y[i] = EROI[j]->GetPosXY(Y_BOTTOM);
+				}
+				else if (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i])
+				{
+					min_y[i] = EROI[j]->GetPosXY(Y_TOP);
 				}
 			}
-			else if (m_discrim_idx < 4)
+			*/
+			if (EROI[j]->GetPosXY(X_LEFT) > min_x[i] && EROI[j]->GetPosXY(X_LEFT) < max_x[i])
 			{
-				m_discrim_arr[m_discrim_idx++] = m_row_projection[i];
+				if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i] || EROI[j]->GetPosXY(Y_TOP) > min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < max_y[i])
+					max_x[i] = EROI[j]->GetPosXY(X_LEFT);
+				else if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i])
+				{
+					max_x[i] = EROI[j]->GetPosXY(X_LEFT);
+					max_y[i] = EROI[j]->GetPosXY(Y_BOTTOM);
+				}
+				else if (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i])
+				{
+					max_x[i] = EROI[j]->GetPosXY(X_LEFT);
+					min_y[i] = EROI[j]->GetPosXY(Y_TOP);
+				}
 			}
-		}*/
 
-		for (int i = 0; i < m_baseROIRXTmp_idx; i++)
-		{
-			//m_SelXPixelChart[m_SelXPxlChrt_idx++] = m_baseROILXTemp[i];
-			//m_SelXPixelChart[m_SelXPxlChrt_idx++] = m_baseROIRXTemp[i];
-			if (abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) > 5)
-				min_x[m_SelXPxlChrt_idx] = m_baseROILXTemp[i];
-			if (abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) > 5)
-				max_x[m_SelXPxlChrt_idx] = m_baseROIRXTemp[i];
-			min_y[m_SelXPxlChrt_idx] = m_col_min;
-			max_y[m_SelXPxlChrt_idx] = m_col_max;
-			m_SelXPxlChrt_idx++;
+			if (EROI[j]->GetPosXY(X_RIGHT) > min_x[i] && EROI[j]->GetPosXY(X_RIGHT) < max_x[i])
+			{
+				if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i] || EROI[j]->GetPosXY(Y_TOP) > min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < max_y[i])
+					min_x[i] = EROI[j]->GetPosXY(X_RIGHT);
+				else if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i])
+				{
+					min_x[i] = EROI[j]->GetPosXY(X_RIGHT);
+					max_y[i] = EROI[j]->GetPosXY(Y_BOTTOM);
+				}
+				else if (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i])
+				{
+					min_x[i] = EROI[j]->GetPosXY(X_RIGHT);
+					min_y[i] = EROI[j]->GetPosXY(Y_TOP);
+				}
+			}
+
+			if (EROI[j]->GetPosXY(X_LEFT) < min_x[i] && EROI[j]->GetPosXY(X_RIGHT) > max_x[i] && (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i]) || 
+				EROI[j]->GetPosXY(X_LEFT) > min_x[i] && EROI[j]->GetPosXY(X_RIGHT) < max_x[i] && (EROI[j]->GetPosXY(Y_TOP) > max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < min_y[i]))
+			{
+				max_x[i] = 0;
+				min_x[i] = 0;
+				min_y[i] = 0;
+				max_y[i] = 0;
+			}
 		}
-		for (int i = m_baseROIRXTmp_idx; i < MAX_ROI_NUM; i++)
+	}
+
+		for (int i = m_baseROIRXTmp_idx; i < MAX_ROI_CNT; i++)
 		{
 			min_x[i] = 0;
 			max_x[i] = 0;
 		}
-		//m_SelYPixelChart[m_SelYPxlChrt_idx++] = m_col_min;
-		//m_SelYPixelChart[m_SelYPxlChrt_idx++] = m_col_max;
 
-
-		/// 위의 코드에 삽입되도록 만들기
+		// 최대, 최소, 평균 온도값 찾기
 		for (int k = 0; k < m_SelXPxlChrt_idx; k++)
 		{
 			for (int j = min_y[k]; j <= max_y[k]; j++)
@@ -734,492 +1225,31 @@ void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
 			m_ResultData.TAvg[i] = 0.0f;
 	}
 
+	// ResultView Spread Condition flag
+	if (m_bSpreadCondition && m_spreadlimitTempr < m_spreadTempr)
+		m_bSpreadCondition = false;
+
+	//if (m_spreadMaxTempr < m_spreadTempr)
+	//	m_spreadMaxTempr = m_spreadTempr;
+
+	// ROI Buffer
 	m_ROI_loop_count = m_SelXPxlChrt_idx;
 
+	if (m_ROIBufferCnt == MAX_ROI_CNT)
+	{
+		m_ROIBufferCnt = m_ROIBufferLimit - 1;		
+
+		for (int i = 0; i < m_ROIBufferCnt; i++)
+		{
+			m_ROIBuffer[i] = m_ROIBuffer[i + MAX_ROI_CNT - m_ROIBufferCnt];	
+		}
+
+		for (int i = m_ROIBufferCnt; i < MAX_ROI_CNT - 1; i++)	
+			m_ROIBuffer[i] = 0;
+	}
+
+	m_ROIBuffer[m_ROIBufferCnt++] = m_SelXPxlChrt_idx;
 }
-
-
-//void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
-//{
-//	/// pBuffer의 주소값이 아닌 안의 배열에 값이 존재 하지 않는 조건문으로 변경해야한다.
-//
-//	//if (pBuffer == NULL || !m_RHK_logging)
-//	//	return;
-//
-//	int arr_count = 0, max_arr = 0, hit_count = 0;
-//	int m_baseROIRXTmp_idx = 0;
-//
-//	int m_col_max = 0;
-//	int m_col_min = 0;
-//	int m_lRow_down_count = 0;
-//	int m_lRow_up_count = 0;
-//	int m_lRow_arr_idx = 0;
-//	int m_change_pxl_cnt = 0;
-//	float m_lRow_temp = 0;
-//	float m_lRow_avg = 0;
-//
-//	float sumTemp[MAX_ROI_NUM] = { 0.0f };
-//	int pixelCount[MAX_ROI_NUM] = { 0 };
-//	bool isArrFirst[MAX_ROI_NUM];
-//	bool isColFirst = false;
-//
-//	bool m_lRow_down_flag = false;
-//	bool m_lRow_up_flag = false;
-//	bool isPxlZero = false;
-//	int gapX = 0, gapY = 0;
-//
-//	for (int i = 0; i < m_ROICount; i++)	// ROI XY 좌표의 min, max 값 초기화
-//	{
-//		//max_x[i] = 0, max_y[i] = 0, min_x[i] = 0, min_y[i] = 0;	// ROI 별 좌표 값
-//		m_ResultData.TMinX[i] = 0; m_ResultData.TMinY[i] = 0;
-//		m_ResultData.TMaxX[i] = 0; m_ResultData.TMaxY[i] = 0;
-//	}
-//
-//	for (int i = 0; i < 512; i++)
-//		m_row_projection[i] = 0;
-//
-//	for (int i = 0; i < 384; i++)
-//		m_col_projection[i] = 0;
-//
-//	for (int i = 0; i < m_SelXPxlChrt_idx; i++)
-//		m_SelXPixelChart[i] = 0;
-//	m_SelXPxlChrt_idx = 0;
-//
-//	for (int i = 0; i < m_SelYPxlChrt_idx; i++)
-//		m_SelYPixelChart[i] = 0;
-//	m_SelYPxlChrt_idx = 0;
-//	m_ROI_loop_count = 0;
-//
-//	/////////////////////////// Base ROI 내 Threshold 를 기준으로 Y축 min, max 좌표값 계산 /////////////////////////////////
-//
-//	if (m_BaseROI.rx != 0 && m_BaseROI.by != 0)
-//	{
-//		for (int i = m_BaseROI.ty; i < m_BaseROI.by; i++)
-//		{
-//			for (int j = m_BaseROI.lx; j < m_BaseROI.rx; j++)
-//			{
-//				float val = pBuffer[sizeX*i + j];
-//
-//				//m_row_projection[j - m_BaseROI.lx] += val;		///수정
-//				::CalArr(m_row_projection, val, j, (int)m_BaseROI.lx);
-//
-//				if (val < m_Threshold)
-//				{
-//					if (!isColFirst)
-//					{
-//						isColFirst = true;
-//						m_col_max = i;
-//						m_col_min = i;
-//					}
-//					else if (i > m_col_max)
-//					{
-//						m_col_max = i;
-//					}
-//					else if (i < m_col_min)
-//					{
-//						m_col_min = i;
-//					}
-//				}
-//			}
-//		}
-//
-//		////////////////// Base ROI 내 Threshold 를 기준으로 Y축 min, max 좌표값 계산 끝 ///////////////////////////
-//
-//		////////////ty + 1의 라인 프로젝션과 평균온도를 구하기 위함////////// 
-//
-//		for (int i = m_BaseROI.lx; i < m_BaseROI.rx; i++)	// 
-//		{
-//			float val = pBuffer[sizeX*(m_col_min + 1) + i];
-//
-//			m_lRow_projection[i - m_BaseROI.lx] = val;
-//			m_lRow_temp += val;
-//		}
-//
-//		m_lRow_avg = m_lRow_temp / (m_BaseROI.rx - m_BaseROI.lx);
-//
-//		//////////ty + 1의 라인 프로젝션과 평균온도를 구하기 위함 끝///////////
-//
-//		///////////// ROI의 온도가 취출구 보다 낮을 경우 lx, rx를 구하기 위함 /////////////////
-//		if (m_row_switch_count < 3)
-//		{
-//			for (int i = m_BaseROI.lx; i < m_BaseROI.rx; i++)	// 라인 프로젝션한 결과 roi의 좌표와 갯수를 구하기 위함
-//			{
-//				if (m_lRow_projection[i - m_BaseROI.lx] < (m_lRow_avg - m_lRow_avg * 0.015) && !m_lRow_down_flag)
-//				{
-//					m_lRow_down_count++;		// 온도값 기준 Down
-//
-//					if (m_lRow_down_count >= 2)
-//					{
-//						m_lRow_down_flag = true;
-//						m_baseROILXTemp[m_lRow_arr_idx] = i;
-//					}
-//				}
-//				else if (!m_lRow_up_flag && m_lRow_down_flag && m_lRow_projection[i - m_BaseROI.lx] > (m_lRow_avg /* up 조건*/))
-//				{
-//					m_lRow_up_count++;
-//
-//					if (m_lRow_up_count >= 2)
-//					{
-//						m_lRow_up_flag = true;
-//						m_baseROIRXTemp[m_lRow_arr_idx] = i - 1;
-//						m_lRow_arr_idx += 1;
-//					}
-//				}
-//				else if (m_lRow_down_flag && m_lRow_up_flag)
-//				{
-//					m_lRow_down_count = 0;
-//					m_lRow_up_count = 0;
-//
-//					m_lRow_down_flag = false;
-//					m_lRow_up_flag = false;
-//				}
-//			}
-//		}
-//
-//		///////////// ROI의 온도가 취출구 보다 낮을 경우 lx, rx를 구하기 위함 끝 /////////////////
-//		
-//		//////////////////////
-//
-//		if (m_row_switch_count == 0 && abs(m_baseROIRXTemp[0] - max_x[0]) > 5 && abs(m_baseROILXTemp[0] - min_x[0]) > 5)	// 초기값 픽셀 저장 
-//		{
-//			m_row_switch_count = 1;		
-//
-//			for (int i = 0; i < m_lRow_arr_idx; i++)
-//			{
-//				min_x[i] = m_baseROILXTemp[i];			min_y[i] = m_col_min;
-//				max_x[i] = m_baseROIRXTemp[i];			max_y[i] = m_col_max;
-//			}
-//			for (int i = m_lRow_arr_idx; i < 50; i++)
-//			{
-//				min_x[i] = 0;			min_y[i] = 0;
-//				max_x[i] = 0; 			max_y[i] = 0;
-//			}
-//		}
-//		else if (m_row_switch_count == 1)	// 급격하게 변하는 픽셀 Catch
-//		{
-//			for (int i = 0; i < m_lRow_arr_idx; i++)
-//			{
-//				if (abs(min_x[i] - m_baseROILXTemp[i]) > 4 || abs(max_x[i] - m_baseROIRXTemp[i]) > 4)
-//				{
-//					m_row_switch_count = 2;
-//					break;
-//				}
-//			}
-//
-//			for (int i = 0; i < m_lRow_arr_idx; i++)
-//			{
-//				if (abs(min_x[i] - m_baseROILXTemp[i]) < 2)
-//					min_x[i] = m_baseROILXTemp[i];			
-//				min_y[i] = m_col_min;
-//				if (abs(max_x[i] - m_baseROIRXTemp[i]) < 2)
-//					max_x[i] = m_baseROIRXTemp[i];			
-//				max_y[i] = m_col_max;
-//			}
-//			for (int i = m_lRow_arr_idx; i < 50; i++)
-//			{
-//				min_x[i] = 0;			min_y[i] = 0;
-//				max_x[i] = 0; 			max_y[i] = 0;
-//			}
-//		}
-//		else if (m_row_switch_count == 2)	// 대상물의 온도가 애매할 경우의 픽셀의 범위에 들어오기 전까지 픽셀 고정
-//		{
-//			for (int i = 0; i < m_lRow_arr_idx; i++)
-//			{
-//				if (abs(min_x[i] - m_baseROILXTemp[i]) <= 3)
-//					m_change_pxl_cnt++;
-//				if (abs(max_x[i] - m_baseROIRXTemp[i]) <= 3)
-//					m_change_pxl_cnt++;
-//			}
-//
-//			if (m_change_pxl_cnt == m_lRow_arr_idx * 2)
-//			{
-//				m_row_switch_count = 3;
-//				m_low_temp_idx = m_lRow_arr_idx;
-//			}
-//		}
-//		else if (m_row_switch_count == 3)	// 대상물의 온도가 취출구의 온도와 확연한 차이가 있을 때
-//		{
-//			///////////////////////////////////// BOXCAR ////////////////////////////////////
-//			if (BOXCAR > 0)
-//			{
-//				float temp_arr[MAX_X_PIXEL] = { 0, };
-//				float temp_val = 0;
-//				float temp_fVal = 0, temp_rVal = 0;
-//
-//				for (int i = BOXCAR; i < m_BaseROI.rx - m_BaseROI.lx - BOXCAR; i++)	// x축의 projection 된 수 만큼
-//				{
-//					for (int j = -BOXCAR; j <= BOXCAR; j++)
-//						temp_val += m_row_projection[i + j];
-//
-//					temp_arr[i] = temp_val / (BOXCAR * 2 + 1);
-//					temp_val = 0;
-//				}
-//
-//				for (int i = 0; i < BOXCAR; i++)
-//				{
-//					for (int j = 0; j <= BOXCAR + i; j++)
-//					{
-//						temp_fVal += m_row_projection[j];
-//						temp_rVal += m_row_projection[(m_BaseROI.rx - m_BaseROI.lx) - (j + 1)];
-//					}
-//					temp_arr[i] = temp_fVal / (BOXCAR + i + 1);
-//					temp_arr[(m_BaseROI.rx - m_BaseROI.lx) - (i + 1)] = temp_rVal / (BOXCAR + i + 1);
-//					temp_fVal = 0;
-//					temp_rVal = 0;
-//				}
-//
-//				for (int i = 0; i < sizeof(m_row_projection) / sizeof(m_row_projection[0]); i++)
-//					m_row_projection[i] = temp_arr[i];
-//			}
-//
-//			/////////////////////////// END OF BOXCAR ////////////////////////////////////////////////
-//
-//			/////////////////////////// PROJECTION ALGORITHM /////////////////////////////////////////
-//			CRect m_baseROI;
-//			m_baseROI.left = m_BaseROI.lx;
-//			m_baseROI.right = m_BaseROI.rx;
-//			m_baseROI.top = m_BaseROI.ty;
-//			m_baseROI.bottom = m_BaseROI.by;
-//
-//			::CalMeasure(pBuffer, &m_baseROI, &m_baseROIRXTmp_idx, m_upStepCoeff, m_middleStepCoeff, m_downStepCoeff, m_baseROILXTemp, m_baseROIRXTemp);
-//			/*
-//			int	m_discrim_idx = 0;
-//			int	m_baseROILXTmp_idx = 0;
-//			int inclin_down = 0;
-//			int inclin_zero = 0;
-//			int inclin_up = 0;
-//
-//			bool m_inclin_up_flag = false;
-//			bool m_inclin_zero_flag = false;
-//			bool m_inclin_down_flag = false;
-//
-//			float m_discrim_arr[4];
-//			float m_inclin_arr[4];
-//
-//			for (int i = 0; i < 4; i++)
-//			{
-//				m_discrim_arr[i] = 0;
-//				m_inclin_arr[i] = 0;
-//			}
-//
-//			for (int i = 0; i < sizeof(m_row_projection) / sizeof(m_row_projection[0]); i++)	// x축의 projection 된 수 만큼
-//			{
-//				if (m_row_projection[i] == 0) break;	// 온도값이 0인 부분은 볼 필요 없다.
-//
-//				if (m_discrim_idx == MAX_DISCRIMINANT_NUM)
-//				{
-//					for (int i = 0; i < sizeof(m_discrim_arr) / sizeof(m_discrim_arr[0]) - 1; i++)	// n개의 판별점 저장
-//					{
-//						m_discrim_arr[i] = m_discrim_arr[i + 1];
-//					}
-//					m_discrim_arr[m_discrim_idx - 1] = m_row_projection[i];
-//
-//					for (int j = 1; j < sizeof(m_discrim_arr) / sizeof(m_discrim_arr[0]); j++)	// 기울기 계산 후 기울기 배열에 값 넣는작업
-//					{
-//						m_inclin_arr[j - 1] = (m_discrim_arr[j] - m_discrim_arr[j - 1]) / (m_BaseROI.by - m_BaseROI.ty); //기울기 계산
-//
-//						if (m_baseROILXTmp_idx > 50 || m_baseROIRXTmp_idx > 50)
-//							continue;
-//
-//						if (!m_inclin_up_flag && inclin_up < 3 && m_inclin_arr[j - 1] > m_upStepCoeff)		// 시작 기울기
-//						{
-//							for (int i = 0; i < sizeof(m_inclin_arr) / sizeof(m_inclin_arr[0]); i++)
-//								inclin_up++;		// 기울기 기준 Up
-//						}
-//						else if (inclin_up < 3)
-//						{
-//							inclin_up = 0;
-//						}
-//						else if (!m_inclin_zero_flag && inclin_up >= 3 && inclin_zero < 3 && m_inclin_arr[j - 1] <= m_middleStepCoeff)	// 중간 기울기
-//						{
-//							inclin_zero++;
-//							m_inclin_up_flag = true;
-//
-//							if (inclin_zero == 1)
-//								m_baseROILXTemp[m_baseROILXTmp_idx++] = i + m_BaseROI.lx;
-//						}
-//						else if (!m_inclin_down_flag && m_inclin_up_flag && inclin_zero >= 3 && inclin_down < 3 && m_inclin_arr[j - 1] < m_downStepCoeff)	// 종료 기울기
-//						{
-//							inclin_down++;
-//							m_inclin_zero_flag = true;
-//
-//							if (inclin_down == 1)
-//								m_baseROIRXTemp[m_baseROIRXTmp_idx++] = i + m_BaseROI.lx;
-//						}
-//						else if (!m_inclin_down_flag && m_inclin_zero_flag && inclin_down >= 3)
-//						{
-//							m_inclin_down_flag = true;
-//
-//							inclin_up = 0;
-//							inclin_zero = 0;
-//							inclin_down = 0;
-//
-//							m_inclin_up_flag = false;
-//							m_inclin_zero_flag = false;
-//							m_inclin_down_flag = false;
-//						}
-//					}
-//				}
-//				else if (m_discrim_idx < MAX_DISCRIMINANT_NUM)
-//				{
-//					m_discrim_arr[m_discrim_idx++] = m_row_projection[i];
-//				}
-//			}
-//			/////////////////////////// END OF PROJECTION ALGORITHM //////////////////////////
-//			*/
-//
-//			if(m_low_temp_idx > m_baseROIRXTmp_idx)	
-//				isPxlZero = true;
-//			else
-//				isPxlZero = false;
-//
-//			/////////////////////////// 가로축 야스리 작업 ///////////////////////////////////
-//			//
-//			if (!isPxlZero)
-//			{
-//				if (m_lx_pxl_avg_idx > 4)
-//				{
-//					int lx_sum[MAX_ROI_NUM] = { 0, };
-//					int rx_sum[MAX_ROI_NUM] = { 0, };
-//
-//					for (int i = 0; i < m_baseROIRXTmp_idx; i++)
-//					{
-//						for (int j = 1; j < m_lx_pxl_avg_idx; j++)
-//						{
-//							if (m_lx_pxl_avg[i][j] == 0)
-//								m_lx_pxl_avg[i][j] = m_baseROILXTemp[i];
-//							m_lx_pxl_avg[i][j - 1] = m_lx_pxl_avg[i][j];
-//							lx_sum[i] += m_lx_pxl_avg[i][j];
-//
-//							if (m_rx_pxl_avg[i][j] == 0)
-//								m_rx_pxl_avg[i][j] = m_baseROIRXTemp[i];
-//							m_rx_pxl_avg[i][j - 1] = m_rx_pxl_avg[i][j];
-//							rx_sum[i] += m_rx_pxl_avg[i][j];
-//						}
-//
-//						if (abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) < 4)
-//						{
-//							m_lx_pxl_avg[i][m_lx_pxl_avg_idx - 1] = m_baseROILXTemp[i];
-//							lx_sum[i] += m_baseROILXTemp[i];
-//						}
-//						else
-//							lx_sum[i] += m_lx_pxl_avg[i][m_lx_pxl_avg_idx - 1];
-//						if (abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) < 4)
-//						{
-//							m_rx_pxl_avg[i][m_lx_pxl_avg_idx - 1] = m_baseROIRXTemp[i];
-//							rx_sum[i] += m_baseROIRXTemp[i];
-//						}
-//						else
-//							rx_sum[i] += m_rx_pxl_avg[i][m_lx_pxl_avg_idx - 1];
-//
-//						min_x[m_SelXPxlChrt_idx] = (int)(lx_sum[i] / MAX_PIXEL_AVG_NUM + 0.5);
-//						max_x[m_SelXPxlChrt_idx] = (int)(rx_sum[i] / MAX_PIXEL_AVG_NUM + 0.5);
-//
-//						min_y[m_SelXPxlChrt_idx] = m_col_min;
-//						max_y[m_SelXPxlChrt_idx] = m_col_max;
-//
-//						m_SelXPxlChrt_idx++;
-//					}
-//				}
-//				else
-//				{
-//					for (int i = 0; i < m_baseROIRXTmp_idx; i++)
-//					{
-//						if (abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) > 3)
-//						{
-//							min_x[m_SelXPxlChrt_idx] = m_baseROILXTemp[i];
-//							m_lx_pxl_avg[i][m_lx_pxl_avg_idx] = m_baseROILXTemp[i];
-//						}
-//						if (abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) > 3)
-//						{
-//							max_x[m_SelXPxlChrt_idx] = m_baseROIRXTemp[i];
-//							m_rx_pxl_avg[i][m_lx_pxl_avg_idx] = m_baseROIRXTemp[i];
-//						}
-//
-//						min_y[m_SelXPxlChrt_idx] = m_col_min;
-//						max_y[m_SelXPxlChrt_idx] = m_col_max;
-//
-//						m_SelXPxlChrt_idx++;
-//					}
-//
-//					m_lx_pxl_avg_idx++;
-//				}
-//
-//				for (int i = m_baseROIRXTmp_idx; i < MAX_ROI_NUM; i++)
-//				{
-//					min_x[i] = 0;
-//					max_x[i] = 0;
-//				}
-//			}
-//		}
-//
-//		//////////////////////// 가로축 야스리 작업 끝 ////////////////////////////////
-//
-//
-//		///////////////////// ROI 내 최대, 최소, 평균 온도 구하기 ///////////////////////
-//		if (m_low_temp_idx < m_SelXPxlChrt_idx)
-//			m_ROI_loop_count = m_SelXPxlChrt_idx;
-//		else if (m_SelXPxlChrt_idx == 0)
-//			m_ROI_loop_count = m_lRow_arr_idx;
-//		else
-//			m_ROI_loop_count = m_low_temp_idx;
-//
-//		for (int k = 0; k < m_ROI_loop_count; k++)
-//		{
-//			for (int j = min_y[k]; j <= max_y[k]; j++)
-//			{
-//				for (int i = min_x[k]; i <= max_x[k]; i++)
-//				{
-//					float val = pBuffer[sizeX*j + i];
-//
-//					pixelCount[k]++;
-//
-//					sumTemp[k] += val;
-//
-//					if (isArrFirst[k]) {
-//						m_ResultData.TMin[k] = m_ResultData.TMax[k] = val;
-//						isArrFirst[k] = false;
-//					}
-//					else {
-//						if (val < m_ResultData.TMin[k])
-//						{
-//							m_ResultData.TMin[k] = val;
-//							m_ResultData.TMinX[k] = i;
-//							m_ResultData.TMinY[k] = j;
-//						}
-//						else if (val > m_ResultData.TMax[k])
-//						{
-//							m_ResultData.TMax[k] = val;
-//							m_ResultData.TMaxX[k] = i;
-//							m_ResultData.TMaxY[k] = j;
-//						}
-//					}
-//				}
-//			}
-//			m_ResultData.TAvg[k] = sumTemp[k] / pixelCount[k];
-//		}
-//	}
-//
-//	/////////////////////// 온도 계산 끝 ////////////////////////////
-//
-//	for (int i = 0; i < m_ROICount; i++)
-//	{
-//		if (m_ResultData.TMin[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
-//			m_ResultData.TMin[i] = 0.0f;
-//		else if (m_ResultData.TMin[i] < 600)
-//			m_ResultData.TMin[i] = 600.0f;
-//		if (m_ResultData.TMax[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
-//			m_ResultData.TMax[i] = 0.0f;
-//		if (m_ResultData.TAvg[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
-//			m_ResultData.TAvg[i] = 0.0f;
-//
-//		if (m_BaseROI.lx > min_x[i] || m_BaseROI.ty > min_y[i] || m_BaseROI.rx < max_x[i] || m_BaseROI.by < max_y[i])
-//		{
-//			min_x[i] = 0;	max_x[i] = 0;
-//			min_y[i] = 0;	max_y[i] = 0;
-//		}
-//	}
-//}
 
 
 void CPyroSoftMDoc::OnNewDataReady()
@@ -1257,8 +1287,9 @@ void CPyroSoftMDoc::OnNewDataReady()
 	// Extract Spot Area ****************************************************
 
 	g_cs.Lock();
-	if(m_RHK_logging)
-		CalculateResult(PPointArr.GetCount(), sizeX, sizeY, pFrameBuffer);
+
+	//if(m_RHK_logging)		// 시작 버튼 누르지 않아도 ROI 계산이 되게끔
+	CalculateResult(PPointArr.GetCount(), sizeX, sizeY, pFrameBuffer);
 
 	g_cs.Unlock();
 
@@ -1268,45 +1299,24 @@ void CPyroSoftMDoc::OnNewDataReady()
 	theApp.m_pPropertyWnd->UpdateDataSet();
 	//****************************************************************************************
 
-	/// 여기다 CalRHKTotalDist() 넣을 건데 조건을 아래와 같이 준다.
-	// Trigger 사용을 하지 않을 시 - 코드 쓰지 말고 calrhktotaldist에서 ending 에서 device do stop만 넣어 주자 [엔딩시에 laser 타이머 다시 재 가동+종료할 시 타이머 제대로 종료되나 다시 확인]
-	if (!m_TriggerOnOff && theApp.m_bLoggingRunning)
+	// Zone Information 정보 적용 여부 (Zone 별 속도, 거리 등)
+	if (theApp.m_bLoggingRunning && m_ZoneInfoEnable)
 		CalRHKTotalDist();
-	else if (m_TriggerOnOff && m_NearFromDev && theApp.m_Laser_Distance <= m_TriggerDist && theApp.m_Laser_Distance > 0)
-	//else if (m_TriggerOnOff && m_NearFromDev && m_TriggerDist <= 30)
-	{
-		if(!theApp.m_bLoggingRunning)
-			OnDeviceLoggingStart();
-		CalRHKTotalDist();
-	}
-	else if (m_TriggerOnOff && !m_NearFromDev && theApp.m_Laser_Distance >= m_TriggerDist && theApp.m_Laser_Distance > 0)
-	//else if (m_TriggerOnOff && !m_NearFromDev && m_TriggerDist >= 2005)
-	{
-		if (!theApp.m_bLoggingRunning)
-			OnDeviceLoggingStart();
-		CalRHKTotalDist();
-	}
-
-	// Trigger 사용을 할 시 - 
 
 	// 화면 속도에 따라 저장 (시간 트리거에 따라 저장하려면 이전 프로젝트의 m_writeFlag 참조) 
 	if ((m_hIRDX_WRITE != INVALID_HANDLE_VALUE) && m_bRawDataSave)
 	{
 		if (theApp.m_bLoggingRunning)
 		{
-			//CalRHKTotalDist();
-
 			if (theApp.m_StatusInfFlag && theApp.m_FocusFlag)
-			{
-				//ModifyFocusLoc();
 				RHKStatusInf();
-			}
 
-			if (m_RHK_logging && theApp.m_TimerFlag)
+			//if (m_RHK_logging && theApp.m_TimerFlag)
+			if(m_RHKStream != NULL && theApp.m_TimerFlag)
 			{
 				theApp.m_TimerFlag = false;
 
-				if (!theApp.DDAQ_IRDX_FILE_AddIRDX(m_hIRDX_WRITE, m_hIRDX_DEVICE) || !SaveRHKData(newRHKDataFileName, true))
+				if (!theApp.DDAQ_IRDX_FILE_AddIRDX(m_hIRDX_WRITE, m_hIRDX_DEVICE) || !AddRHKData(newRHKDataFileName, true))
 				{
 					OnDeviceLoggingStop();
 					return;
@@ -1317,57 +1327,72 @@ void CPyroSoftMDoc::OnNewDataReady()
 				theApp.m_TimerFlag = false;
 
 				if (!theApp.DDAQ_IRDX_FILE_AddIRDX(m_hIRDX_WRITE, m_hIRDX_DEVICE))
+				//if (!theApp.DDAQ_IRDX_FILE_AddIRDX(m_hIRDX_WRITE, m_hIRDX_DEVICE) || !AddRHKData(newRHKDataFileName, true))
 				{
 					OnDeviceLoggingStop();
 					return;
 				}
 			}
-
 		}
 	}
 
-	//if (theApp.m_bLoggingRunning)
-	//{
-	//	m_AcqIndex++;
-	//}
+	// mody 10-18
+	if (m_ROIBufferCnt >= m_ROIBufferLimit)	
+	{
+		int cnt = 0;
+		int sumation = 0;
 
-	///FSetFrequency();
+		for (int i = m_ROIBufferCnt - m_ROIBufferLimit; i < m_ROIBufferCnt; i++)	
+		{
+			if (m_ROIBuffer[i] >= m_ROICatchCnt)
+				cnt++;
+
+			sumation += m_ROIBuffer[i];
+		}
+
+		if (!theApp.m_bLoggingRunning && cnt >= m_ROIBufferLimit)	
+		{
+			OnDeviceLoggingStart();
+		}
+		else if (theApp.m_bLoggingRunning && sumation == 0)
+		{
+			for (int i = 0; i < MAX_ROI_CNT - 1; i++)
+				m_ROIBuffer[i] = 0;
+
+			m_ROIBufferCnt = 0;
+
+			OnDeviceLoggingStop();
+		}
+	}
 
 	// Enable NextMessage
 	theApp.DDAQ_DEVICE_DO_ENABLE_NextMsg(m_nDDAQDeviceNo);
 }
 
+void CPyroSoftMDoc::OnNewIRDXDataReady()
+{
+
+}
+
 void CPyroSoftMDoc::FSetFrequency()
 {
-	if (m_AcqIndex == 1)
+	if (theApp.m_bLoggingRunning)
 	{
 		CString s;
-		int fav = m_FPS / m_Avg; /// 적합한 변수 필요
+		unsigned short m_logging_avg = 8;
+		float fav = m_FPS / m_logging_avg; /// 적합한 변수 필요
 
 		if (!theApp.DDAQ_DEVICE_DO_Stop(m_nDDAQDeviceNo))
 			return;
 
 		/// 화면 Freq 에 따라 변수를 넣어주면 된다.
-		s.Format("%d (%.1f Hz)", m_Avg, fav);	/// 적합한 변수 필요
+		s.Format("%d (%.1f Hz)", m_logging_avg, fav);	/// 적합한 변수 필요
 		theApp.m_pPropertyWnd->pDataAcq_AcqFreq->SetValue((_variant_t)(s));
-		theApp.DDAQ_IRDX_ACQUISITION_SetAveraging(m_hIRDX_DEVICE, 8);
+		theApp.DDAQ_IRDX_ACQUISITION_SetAveraging(m_hIRDX_DEVICE, m_logging_avg);
 
 		if (!theApp.DDAQ_DEVICE_DO_Start(m_nDDAQDeviceNo))
 			return;
 	}
-}
-
-void CPyroSoftMDoc::ModifyFocusLoc()
-{
-	unsigned short	Pos;
-	unsigned short	Status;
-	unsigned long	version;
-
-	theApp.DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(m_hIRDX_Doc, &Pos, &Status);
-
-	theApp.DDAQ_IRDX_ACQUISITION_SetMotorFocusPos(m_hIRDX_Doc, m_FocusLocation);
-
-	theApp.DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(m_hIRDX_Doc, &Pos, &Status);
 }
 
 void CPyroSoftMDoc::RHKStatusInf()
@@ -1380,7 +1405,7 @@ void CPyroSoftMDoc::RHKStatusInf()
 	CString strSpenTime = spanTime.Format("%H:%M:%S");
 
 	strMovDistance.Format("%f", m_RHKTotalDistance);
-
+	
 	if (m_OpenMode == 3)
 	{
 		if (m_RHK_logging)
@@ -1388,100 +1413,37 @@ void CPyroSoftMDoc::RHKStatusInf()
 			strFocusCount.Format("%d", m_RHKZoneCount);
 			statusStr.Format("동작 시간 : " + strSpenTime + "  이동 거리 : " + strMovDistance + "(mm)   Zone Pos : " + strFocusCount);
 		}
-		else
-		{
-			if ((int)theApp.m_Laser_Distance > 0)
-				strFocusCount.Format("%d", (int)(theApp.m_Laser_Distance));
-			else
-				strFocusCount = "--";
-
-			statusStr.Format("동작 시간 : " + strSpenTime + "  이동 거리 : " + strMovDistance + "(mm)   레이저 거리 : " + strFocusCount + "(mm)");
-		}
 	}
 	else
 		strFocusCount = "--";
 
-	pMWnd->SetStatusText(statusStr);		//하단 상태바에 좌표값과 온도값 표시
+	pMWnd->SetStatusText(statusStr);		// 하단 상태바에 좌표값과 온도값 표시
 }
 
 void CPyroSoftMDoc::CalRHKTotalDist()
 {
 	CString timeDistance;
 
-	if (m_RHKDistance >= m_ZoneDistance[m_RHKZoneCount] && m_NumOfZone - 1 > m_RHKZoneCount)		// Zone 구간의 거리를 넘었을 시
+	if (m_RHKDistance >= m_ZoneDistance[m_RHKZoneCount] && m_NumOfZone - 1 > m_RHKZoneCount  )		// Zone 구간의 거리를 넘었을 시
 	{
 		m_RHKZoneCount++;
 
 		m_RHKStepTime = m_DateTime;
 		m_RHKPreDistance += m_RHKDistance;
 
-		if (m_TriggerOnOff && theApp.m_Laser_Distance >= 0)		//Laser Trigger가 on일 때
-		//if (m_TriggerOnOff )		//Laser Trigger가 on일 때
+		if (!m_RHK_log_done && m_RHKZoneCount > m_EndingPos)		// Ending Position 까지 도달 하면 종료
 		{
-			bool nearOnOff = false;
-
-			if (m_NearFromDev)				// Trigger 기준 거리보다 작을 시
-				if (theApp.m_Laser_Distance >= m_TriggerDist && theApp.m_Laser_Distance >= 5)
-				//if (30 >= m_TriggerDist)
-					nearOnOff = true;
-				else
-					nearOnOff = false;
-			else                           // Trigger 기준 거리보다 클 시
-				if (theApp.m_Laser_Distance <= m_TriggerDist && theApp.m_Laser_Distance >= 5)
-				//if (30 <= m_TriggerDist)
-					nearOnOff = true;
-				else
-					nearOnOff = false;
-
-			if (!m_RHK_log_done && m_RHKZoneCount > m_EndingPos)	// Ending Position 까지 가면 종료해라
-			{
-				OnDeviceLoggingStop();
-
-				m_TriggerOnOff = false;
-				theApp.m_pPropertyWnd->pDataTriggerFlag->SetValue(m_TriggerOnOff);
-				m_triggerLoggingFirst = false;
-
-				for (int i = 0; i < m_ROICount; i++)
-				{
-					m_ResultData.TMax[i] = 0;
-					m_ResultData.TMin[i] = 0;
-					m_ResultData.TAvg[i] = 0;
-				}
-
-				UpdateAllViews(NULL, 8);
-			}
-			else if (!m_RHK_log_done && !m_RHK_logging && m_RHKZoneCount >= m_StartingPos && m_triggerLoggingFirst)
-			{
-				m_RHK_logging = true;
-			}
-			else if (!m_RHK_log_done && !m_RHK_logging && nearOnOff && !m_triggerLoggingFirst)	// Laser Trigger의 기준 거리를 만족 했을 시
-			{
-				m_triggerLoggingFirst = true;		//logging stop에 false 로 초기화 해주는것 필요 + m_LaserTimerID 타이머 실행 시키기
-
-				if (theApp.m_LaserTimerID != NULL)
-					timeKillEvent(theApp.m_LaserTimerID);
-			}
+			OnDeviceLoggingStop();
 		}
-		else                // Laser Trigger가 off 일 때
+		else if (!m_RHK_log_done && !m_RHK_logging && m_RHKZoneCount >= m_StartingPos )	// Starting Position이 시작하면 저장 시작해라
 		{
-			if (!m_RHK_log_done && m_RHKZoneCount > m_EndingPos)		// Ending Position 까지 도달 하면 종료
-			{
-				OnDeviceLoggingStop();
+			m_RHK_logging = true;
 
-				for (int i = 0; i < m_ROICount; i++)
-				{
-					m_ResultData.TMax[i] = 0;
-					m_ResultData.TMin[i] = 0;
-					m_ResultData.TAvg[i] = 0;
-				}
-			}
-			else if (!m_RHK_log_done && !m_RHK_logging && m_RHKZoneCount >= m_StartingPos)	// Starting Position이 시작하면 저장 시작해라
-			{
-				m_RHK_logging = true;
+			int RHKData = 3;
+			newRHKDataFileName = GetNewDataFileName(RHKData);
 
-				if (theApp.m_LaserTimerID != NULL)
-					timeKillEvent(theApp.m_LaserTimerID);
-			}
+			if (!CreateRHKDataFile(newRHKDataFileName))
+				AfxMessageBox("파일을 만들지 못하였습니다.\n경로를 확인하세요.");
 		}
 	}
 	else if (m_RHKStepTime == 0)	// Zone 구간의 거리를 넘지 않았을 시
@@ -1496,42 +1458,39 @@ void CPyroSoftMDoc::CalRHKTotalDist()
 		m_RHKDistance = m_ZoneSpeed[m_RHKZoneCount] / 60.0f * m_RHKSpenTime.GetTotalSeconds();
 		m_RHKTotalDistance = m_RHKPreDistance + m_RHKDistance;
 
-		if (m_Auto_ET_Mode)
-		{
-			if (m_RHKTotalDistance > m_ET_Distance[m_ET_idx])
-			{
-				//m_Emissivity = m_resultEmissivity[m_ET_idx];   
-				m_Emissivity = m_ET_Emissivity[m_ET_idx];
-				m_Transmission = m_ET_Transmission[m_ET_idx];
+		//if (m_Auto_ET_Mode)
+		//{
+		//	if (m_RHKTotalDistance > m_ET_Distance[m_ET_idx])
+		//	{
+		//		//m_Emissivity = m_resultEmissivity[m_ET_idx];   
+		//		m_Emissivity = m_ET_Emissivity[m_ET_idx];
+		//		m_Transmission = m_ET_Transmission[m_ET_idx];
 
-				theApp.m_pPropertyWnd->pMeasObj_Emissivity->SetValue((_variant_t)m_Emissivity);
-				theApp.DDAQ_IRDX_OBJECT_SetEmissivity(m_hIRDX_Doc, m_Emissivity);
+		//		theApp.m_pPropertyWnd->pMeasObj_Emissivity->SetValue((_variant_t)m_Emissivity);
+		//		theApp.DDAQ_IRDX_OBJECT_SetEmissivity(m_hIRDX_Doc, m_Emissivity);
 
-				theApp.m_pPropertyWnd->pMeasObj_Trans->SetValue((_variant_t)m_Transmission);
-				theApp.DDAQ_IRDX_OBJECT_SetTransmission(m_hIRDX_Doc, m_Transmission);
+		//		theApp.m_pPropertyWnd->pMeasObj_Trans->SetValue((_variant_t)m_Transmission);
+		//		theApp.DDAQ_IRDX_OBJECT_SetTransmission(m_hIRDX_Doc, m_Transmission);
 
-				m_ET_idx++;
-				UpdateAllViews(NULL, 2);
-			}
-		}
+		//		m_ET_idx++;
+		//		UpdateAllViews(NULL, 2);
+		//	}
+		//}
 	}
-
-	/// m_FocusingIndex 로 최종적으로 수정해야한다.
-	CalFocusLocation();
 }
-
-void CPyroSoftMDoc::CalFocusLocation()
-{
-	m_FocusLocation = m_ThirdCeoff * pow(m_RHKTotalDistance, 3) + m_SecondCeoff * pow(m_RHKTotalDistance, 2) + m_FirstCeoff* pow(m_RHKTotalDistance, 1) + m_Intercept;
-}
-
 /////////////////////////////////////////////////////////////////////////////
+
 void CPyroSoftMDoc::LoadConfig()
 {
 	FILE *stream;
+	CString str;
+	int side;
+	int tmpLCount, tmpRCount;
 	float tmpFirstCoeff;
 
 	char dummy[128];
+	int L_lx, L_ty, L_rx, L_by,R_lx, R_ty, R_rx, R_by;
+	int lx[2][MAX_EROI_CNT], rx[2][MAX_EROI_CNT], ty[2][MAX_EROI_CNT], by[2][MAX_EROI_CNT];
 
 	::GetModuleFileName(::AfxGetInstanceHandle(), m_AppPath, _MAX_PATH);
 	PathRemoveFileSpec(m_AppPath);
@@ -1539,6 +1498,11 @@ void CPyroSoftMDoc::LoadConfig()
 	CString ConfigFileName = m_AppPath + CString("\\config.ini");
 
 	stream = fopen((CStringA)ConfigFileName, "rt");
+
+	// [Data Acquisition]
+	fgets(dummy, 127, stream);
+	fscanf(stream, "AcquisitionFrequency=%d\n", &theApp.m_acqFreq);
+	fscanf(stream, "LoggingInterval(ms)=%d\n\n", &theApp.m_loggingInterval);
 
 	// [Mesurement]
 	fgets(dummy, 127, stream);
@@ -1555,15 +1519,16 @@ void CPyroSoftMDoc::LoadConfig()
 
 	// [Focus]
 	fgets(dummy, 127, stream);
-	fscanf(stream, "Location=%d\n", &m_FocusingIndex);
+	fscanf(stream, "Location=%d\n", &m_FocusPosition);
 
 	//[Infomation]
 	fgets(dummy, 127, stream);
 	fscanf(stream, "Threshold=%f\n", &m_Threshold);
+	fscanf(stream, "ROIBuffer=%d\n", &m_ROIBufferLimit);
+	fscanf(stream, "CatchROINum=%d\n", &m_ROICatchCnt);
 	fscanf(stream, "ROICount=%d\n", &m_ROICount);
-	fscanf(stream, "TriggerOnOff=%d\n", &m_TriggerOnOff);
-	fscanf(stream, "NearTrigger=%d\n", &m_NearFromDev);
-	fscanf(stream, "TriggerDistance=%f\n", &m_TriggerDist); 
+	fscanf(stream, "ObjectROIMinSize=%d\n", &m_BROI_minSize);
+	BROI->SetMinSize(m_BROI_minSize);
 
 	// [Regression analysis]
 	fgets(dummy, 127, stream);
@@ -1581,15 +1546,43 @@ void CPyroSoftMDoc::LoadConfig()
 	// [Screen Flag]
 	fgets(dummy, 127, stream);
 	fscanf(stream, "CursorTempFlag=%d\n", &m_cursorShow);
+	fscanf(stream, "ObjectROINumberFlag=%d\n", &m_OOIShowNum);
 	fscanf(stream, "ROINumberFlag=%d\n", &m_ROIShow);
 	fscanf(stream, "POINumberFlag=%d\n", &m_POIShowNum);
 	fscanf(stream, "MaxPointerFlag=%d\n", &m_maxPointerShow);
 	fscanf(stream, "MinPointerFlag=%d\n", &m_minPointerShow);
 
+	// [Spread Alarm]
+	fgets(dummy, 127, stream);
+	fscanf(stream, "SpreadDetecRange=%f\n", &m_spreadDetctRange);
+	fscanf(stream, "SpreadLimitTempurature=%f\n", &m_spreadlimitTempr);
+
 	// [Base ROI]
 	fgets(dummy, 127, stream);
-	fscanf(stream, "(X1,Y1)=(%d,%d)\n", &m_BaseROI.lx, &m_BaseROI.ty);
-	fscanf(stream, "(X2,Y2)=(%d,%d)\n\n", &m_BaseROI.rx, &m_BaseROI.by);
+	fscanf(stream, "WhichSide(0-Left,1-Right)=%d\n", &side);
+	fscanf(stream, "(L_LX,L_TY)=(%d,%d)\n", &L_lx, &L_ty);
+	fscanf(stream, "(L_RX,L_BY)=(%d,%d)\n", &L_rx, &L_by);
+	fscanf(stream, "(R_LX,R_TY)=(%d,%d)\n", &R_lx, &R_ty);
+	fscanf(stream, "(R_RX,R_BY)=(%d,%d)\n\n", &R_rx, &R_by);
+	
+	// [Exclusive ROI]
+	fgets(dummy, 127, stream);
+	fscanf(stream, "ExclusiveROICount(L,R)=(%d,%d)\n", &tmpLCount, &tmpRCount);
+	for (int i = 0; i < MAX_EROI_CNT; i++)
+	{
+		str.Format("(L_LX_%d,L_TY_%d)", (i + 1), (i + 1));
+		fscanf(stream, str + "=(%d,%d)\n", &lx[LEFT_SIDE][i], &ty[LEFT_SIDE][i]);
+		str.Format("(L_RX_%d,L_BY_%d)", (i + 1), (i + 1));
+		fscanf(stream, str + "=(%d,%d)\n", &rx[LEFT_SIDE][i], &by[LEFT_SIDE][i]);
+	}
+	for (int i = 0; i < MAX_EROI_CNT; i++)
+	{
+		str.Format("(R_LX_%d,R_TY_%d)", (i + 1), (i + 1));
+		fscanf(stream, str + "=(%d,%d)\n", &lx[RIGHT_SIDE][i], &ty[RIGHT_SIDE][i]);
+		str.Format("(R_RX_%d,R_BY_%d)", (i + 1), (i + 1)); 
+		fscanf(stream, str + "=(%d,%d)\n", &rx[RIGHT_SIDE][i], &by[RIGHT_SIDE][i]);
+	}
+	fprintf(stream, "\n");
 
 	// [Logging path]
 	fgets(dummy, 127, stream);
@@ -1606,6 +1599,8 @@ void CPyroSoftMDoc::LoadConfig()
 
 	fclose(stream);
 
+	BROI->SetDirection(side);
+
 	bool ret = theApp.DDAQ_SetTempPrecision(0);
 
 	if (m_OpenMode == 3)
@@ -1616,6 +1611,55 @@ void CPyroSoftMDoc::LoadConfig()
 		theApp.DDAQ_IRDX_SCALE_SetMinMax(m_hIRDX_Doc, m_ScaleMin, m_ScaleMax);
 		theApp.DDAQ_IRDX_PALLET_SetIsotherm(m_hIRDX_Doc, 1, m_MinTemp, m_ScaleIsoTherm, RGB(0, 0, 0), 0, false);
 	}
+
+	if (BROI->GetDirection() == RIGHT_SIDE)	// RIGHT Side
+	{
+		// Base ROI Initializing
+		BROI->SetPosXY(X_LEFT, R_lx);		BROI->SetPosXY(X_RIGHT, R_rx);
+		BROI->SetPosXY(Y_TOP, R_ty);		BROI->SetPosXY(Y_BOTTOM, R_by);
+
+		BROI->SetOppPosXY(X_LEFT, L_lx);	BROI->SetOppPosXY(X_RIGHT, L_rx);
+		BROI->SetOppPosXY(Y_TOP, L_ty);		BROI->SetOppPosXY(Y_BOTTOM, L_by);
+
+		// Exclusive ROI Initializing
+		EROI[0]->SetCount(tmpRCount);
+		EROI[0]->SetOppCount(tmpLCount);
+
+
+		for (int i = 0; i < MAX_EROI_CNT; i++)
+		{
+			EROI[i]->SetPosXY(X_LEFT, lx[RIGHT_SIDE][i]);		EROI[i]->SetPosXY(X_RIGHT, rx[RIGHT_SIDE][i]);
+			EROI[i]->SetPosXY(Y_TOP, ty[RIGHT_SIDE][i]);		EROI[i]->SetPosXY(Y_BOTTOM, by[RIGHT_SIDE][i]);
+
+			EROI[i]->SetOppPosXY(X_LEFT, lx[LEFT_SIDE][i]);		EROI[i]->SetOppPosXY(X_RIGHT, rx[LEFT_SIDE][i]);
+			EROI[i]->SetOppPosXY(Y_TOP, ty[LEFT_SIDE][i]);		EROI[i]->SetOppPosXY(Y_BOTTOM, by[LEFT_SIDE][i]);
+		}
+	}
+	else				// LEFT Side
+	{
+		// Base ROI Initializing
+		BROI->SetPosXY(X_LEFT, L_lx);		BROI->SetPosXY(X_RIGHT, L_rx);
+		BROI->SetPosXY(Y_TOP, L_ty);		BROI->SetPosXY(Y_BOTTOM, L_by);
+
+		BROI->SetOppPosXY(X_LEFT, R_lx);		BROI->SetOppPosXY(X_RIGHT, R_rx);
+		BROI->SetOppPosXY(Y_TOP, R_ty);		BROI->SetOppPosXY(Y_BOTTOM, R_by);
+
+		// Exclusive ROI Initializing
+		EROI[0]->SetCount(tmpLCount);
+		EROI[0]->SetOppCount(tmpRCount);
+
+		for (int i = 0; i < MAX_EROI_CNT; i++)
+		{
+			EROI[i]->SetPosXY(X_LEFT, lx[LEFT_SIDE][i]);		EROI[i]->SetPosXY(X_RIGHT, rx[LEFT_SIDE][i]);
+			EROI[i]->SetPosXY(Y_TOP, ty[LEFT_SIDE][i]);		EROI[i]->SetPosXY(Y_BOTTOM, by[LEFT_SIDE][i]);
+
+			EROI[i]->SetOppPosXY(X_LEFT, lx[RIGHT_SIDE][i]);		EROI[i]->SetOppPosXY(X_RIGHT, rx[RIGHT_SIDE][i]);
+			EROI[i]->SetOppPosXY(Y_TOP, ty[RIGHT_SIDE][i]);		EROI[i]->SetOppPosXY(Y_BOTTOM, by[RIGHT_SIDE][i]);
+		}
+	}
+
+	if (m_downStepCoeff > 0)
+		m_downStepCoeff = -m_downStepCoeff;
 }
 
 void CPyroSoftMDoc::LoadETPerDistance()
@@ -1736,8 +1780,6 @@ void CPyroSoftMDoc::GetEmissivityBySpline(int pointCount, double distanceArray[]
 	}
 }
 
-/// #############################################################################
-
 int CPyroSoftMDoc::GetFindCharCount(CString parm_str, char token_char)
 {
 	int length = parm_str.GetLength(), find_count = 0;
@@ -1770,7 +1812,6 @@ void CPyroSoftMDoc::LoadRecipeConfig()
 
 	// [Recipe Information]
 	fgets(dummy, 127, stream);
-	//fscanf(stream, "StartingDistance=%dmm\n", &m_RcpStartDist);
 	fscanf(stream, "StartingPoisition=%d\n", &m_StartingPos);
 	fscanf(stream, "EndingPosition=%d\n\n", &m_EndingPos);
 
@@ -1805,6 +1846,30 @@ void CPyroSoftMDoc::LoadRecipeConfig()
 	//	m_RcpStartDist = 5001;
 }
 
+void CPyroSoftMDoc::SaveIRDXConfig()
+{
+	//FILE *stream;
+
+	//char* buffer;
+	//int strLen;
+
+	//::GetModuleFileName(::AfxGetInstanceHandle(), m_AppPath, _MAX_PATH);
+	//PathRemoveFileSpec(m_AppPath);
+
+	//CString ConfigFileName = m_AppPath + CString("\\config.ini");
+	////CString ConfigFileName = CString("H:\\PyroSoftM\\PyroSoftM\\Debug") +CString("\\config.ini");
+
+	//stream = fopen((CStringA)ConfigFileName, "r+");
+
+	////[Time]
+	//fprintf(stream, "[Data Acquisition]\n");
+	//fprintf(stream, "AcquisitionFrequency=%d\n", theApp.m_acqFreq);
+	//fprintf(stream, "");
+
+	//fclose(stream);
+}
+
+
 void CPyroSoftMDoc::SaveConfig()
 {
 	FILE *stream;
@@ -1819,6 +1884,11 @@ void CPyroSoftMDoc::SaveConfig()
 	//CString ConfigFileName = CString("H:\\PyroSoftM\\PyroSoftM\\Debug") +CString("\\config.ini");
 
 	stream = fopen((CStringA)ConfigFileName, "wt");
+
+	//[Time]
+	fprintf(stream, "[Data Acquisition]\n");
+	fprintf(stream, "AcquisitionFrequency=%d\n", theApp.m_acqFreq);
+	fprintf(stream, "LoggingInterval(ms)=%d\n\n", theApp.m_loggingInterval);
 
 	// [Mesurement]
 	fprintf(stream, "[Mesurement]\n");
@@ -1836,16 +1906,15 @@ void CPyroSoftMDoc::SaveConfig()
 	// [Focus]
 	fprintf(stream, "[Focus]\n");
 	//fprintf(stream, "FocusFlag=%d\n", theApp.m_ForcedFocusFlg);
-	fprintf(stream, "Location=%d\n\n", m_FocusingIndex);
+	fprintf(stream, "Location=%d\n\n", m_FocusPosition);
 
-	//[NMS Infomation]
+	// [Information]
 	fprintf(stream, "[Infomation]\n");
 	fprintf(stream, "Threshold=%.2f\n", m_Threshold);
+	fprintf(stream, "ROIBuffer=%d\n", m_ROIBufferLimit);
+	fprintf(stream, "CatchROINum=%d\n", m_ROICatchCnt);
 	fprintf(stream, "ROICount=%d\n", m_ROICount);
-	fprintf(stream, "TriggerOnOff=%d\n", m_TriggerOnOff);
-	fprintf(stream, "NearTrigger=%d\n", m_NearFromDev);
-	fprintf(stream, "TriggerDistance=%.0f\n\n", m_TriggerDist);
-
+	fprintf(stream, "ObjectROIMinSize=%d\n\n", m_BROI_minSize);
 
 	// [Regression analysis]
 	fprintf(stream, "[Regression analysis]\n");
@@ -1858,21 +1927,75 @@ void CPyroSoftMDoc::SaveConfig()
 	fprintf(stream, "[Step Difference]\n");
 	fprintf(stream, "UpStepDifference=%.2f\n", m_upStepCoeff);
 	fprintf(stream, "MiddleStepDifference=%.2f\n", m_middleStepCoeff);
-	fprintf(stream, "DownStepDifference=%.2f\n\n", m_downStepCoeff);
+	fprintf(stream, "DownStepDifference=%.2f\n\n", abs(m_downStepCoeff));
 
 	// [Screen Flag]
 	fprintf(stream, "[Screen Flag]\n");
 	fprintf(stream, "CursorTempFlag=%d\n", m_cursorShow);
+	fprintf(stream, "ObjectROINumberFlag=%d\n", m_OOIShowNum);
 	fprintf(stream, "ROINumberFlag=%d\n", m_ROIShow);
 	fprintf(stream, "POINumberFlag=%d\n", m_POIShowNum);
 	fprintf(stream, "MaxPointerFlag=%d\n", m_maxPointerShow);
 	fprintf(stream, "MinPointerFlag=%d\n\n", m_minPointerShow);
 
+	// [Spread Alarm]
+	fprintf(stream, "[Spread Alarm]\n");
+	fprintf(stream, "SpreadDetecRange=%.2f\n", m_spreadDetctRange);
+	fprintf(stream, "SpreadLimitTempurature=%.2f\n\n", m_spreadlimitTempr);
+
 	// [Base ROI]
 	fprintf(stream, "[Base ROI]\n");
-	fprintf(stream, "(X1,Y1)=(%d,%d)\n", m_BaseROI.lx, m_BaseROI.ty);
-	fprintf(stream, "(X2,Y2)=(%d,%d)\n\n", m_BaseROI.rx, m_BaseROI.by);
+	fprintf(stream, "WhichSide(0-Left,1-Right)=%d\n", BROI->GetDirection());
+	if (BROI->GetDirection())		// Right Side
+	{
+		fprintf(stream, "(L_LX,L_TY)=(%d,%d)\n", BROI->GetOppPosXY(X_LEFT), BROI->GetOppPosXY(Y_TOP));
+		fprintf(stream, "(L_RX,L_BY)=(%d,%d)\n", BROI->GetOppPosXY(X_RIGHT), BROI->GetOppPosXY(Y_BOTTOM));
+		fprintf(stream, "(R_LX,R_TY)=(%d,%d)\n", BROI->GetPosXY(X_LEFT), BROI->GetPosXY(Y_TOP));
+		fprintf(stream, "(R_RX,R_BY)=(%d,%d)\n\n", BROI->GetPosXY(X_RIGHT), BROI->GetPosXY(Y_BOTTOM));
+	}
+	else					// Left Side
+	{
+		fprintf(stream, "(L_LX,L_TY)=(%d,%d)\n", BROI->GetPosXY(X_LEFT), BROI->GetPosXY(Y_TOP));
+		fprintf(stream, "(L_RX,L_BY)=(%d,%d)\n", BROI->GetPosXY(X_RIGHT), BROI->GetPosXY(Y_BOTTOM));
+		fprintf(stream, "(R_LX,R_TY)=(%d,%d)\n", BROI->GetOppPosXY(X_LEFT), BROI->GetOppPosXY(Y_TOP));
+		fprintf(stream, "(R_RX,R_BY)=(%d,%d)\n\n", BROI->GetOppPosXY(X_RIGHT), BROI->GetOppPosXY(Y_BOTTOM));
+	}
+	
+	// [Exclusive ROI]
+	fprintf(stream, "[Exclusive ROI]\n");
 
+	if (BROI->GetDirection())		// Right Side
+	{
+		fprintf(stream, "ExclusiveROICount(L,R)=(%d,%d)\n", EROI[0]->GetOppCount() , EROI[0]->GetCount());
+
+		for (int i = 0; i < MAX_EROI_CNT; i++)
+		{
+			fprintf(stream, "(L_LX_%d,L_TY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetOppPosXY(X_LEFT), EROI[i]->GetOppPosXY(Y_TOP));
+			fprintf(stream, "(L_RX_%d,L_BY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetOppPosXY(X_RIGHT), EROI[i]->GetOppPosXY(Y_BOTTOM));
+		}
+		for (int i = 0; i < MAX_EROI_CNT; i++)
+		{
+			fprintf(stream, "(R_LX_%d,R_TY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetPosXY(X_LEFT), EROI[i]->GetPosXY(Y_TOP));
+			fprintf(stream, "(R_RX_%d,R_BY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetPosXY(X_RIGHT), EROI[i]->GetPosXY(Y_BOTTOM));
+		}
+	}
+	else					// Left Side
+	{
+		fprintf(stream, "ExclusiveROICount(L,R)=(%d,%d)\n", EROI[0]->GetCount(), EROI[0]->GetOppCount());
+
+		for (int i = 0; i < MAX_EROI_CNT; i++)
+		{
+			fprintf(stream, "(L_LX_%d,L_TY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetPosXY(X_LEFT), EROI[i]->GetPosXY(Y_TOP));
+			fprintf(stream, "(L_RX_%d,L_BY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetPosXY(X_RIGHT), EROI[i]->GetPosXY(Y_BOTTOM));
+		}
+		for (int i = 0; i < MAX_EROI_CNT; i++)
+		{
+			fprintf(stream, "(R_LX_%d,R_TY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetOppPosXY(X_LEFT), EROI[i]->GetOppPosXY(Y_TOP));
+			fprintf(stream, "(R_RX_%d,R_BY_%d)=(%d,%d)\n", (i + 1), (i + 1), EROI[i]->GetOppPosXY(X_RIGHT), EROI[i]->GetOppPosXY(Y_BOTTOM));
+		}
+	}
+	fprintf(stream, "\n");
+	
 	// [DataFilePath]
 	fprintf(stream, "[DataFilePath]\n");
 	fprintf(stream, "RawDataFilePath=%s\n", m_strRawDataFilePath);
@@ -1897,7 +2020,7 @@ bool CPyroSoftMDoc::CreateResultDataFile(CString FileName)
 	return bRet;
 }
 
-bool CPyroSoftMDoc::CreateRHKDataFile(CString FileName)
+/*bool CPyroSoftMDoc::CreateRHKDataFile(CString FileName)
 {
 	//FILE *stream;
 	CFileFind pFind;
@@ -1919,9 +2042,9 @@ bool CPyroSoftMDoc::CreateRHKDataFile(CString FileName)
 	SS_ET_OFFSET = ftell(m_RHKStream);
 	fprintf(m_RHKStream, "%s\t\t%s\n", "EndTime  ", strDate);		///수정 요함
 
-	fprintf(m_RHKStream, "%s\t\t%s\n", "StartingPos", m_StartingPos);
+	fprintf(m_RHKStream, "%s\t\t%d\n", "StartingPos", m_StartingPos);
 
-	fprintf(m_RHKStream, "%s\t\t%s\n", "EndingPos", m_EndingPos);
+	fprintf(m_RHKStream, "%s\t\t%d\n", "EndingPos", m_EndingPos);
 
 	fprintf(m_RHKStream, "%s\t\t%d\n", "ROI_Num  ", m_ROICount);
 
@@ -1953,6 +2076,68 @@ bool CPyroSoftMDoc::CreateRHKDataFile(CString FileName)
 	fprintf(m_RHKStream, "\n\n");
 
 	return bRet;
+}*/
+
+bool CPyroSoftMDoc::CreateRHKDataFile(CString FileName)
+{
+	//FILE *stream;
+	CFileFind pFind;
+
+	CString ConfigFileName = FileName;
+
+	//stream
+	m_RHKStream = fopen((CStringA)ConfigFileName, "w");
+
+	BOOL bRet = pFind.FindFile((CStringA)ConfigFileName);
+
+	CTime DateTime = CTime::GetCurrentTime();
+	CString	strDate = DateTime.Format(_T("%Y-%m-%d %H:%M:%S"));
+
+	fprintf(m_RHKStream, "%s\t\t%s\n", "Name", theApp.m_RHK_name);
+
+	fprintf(m_RHKStream, "%s\t\t%s\n", "StartTime", strDate);
+
+	SS_ET_OFFSET = ftell(m_RHKStream);
+	fprintf(m_RHKStream, "%s\t\t%s\n", "EndTime  ", strDate);		///수정 요함
+
+	fprintf(m_RHKStream, "%s\t\t%d\n", "StartingPos", m_StartingPos);
+
+	fprintf(m_RHKStream, "%s\t\t%d\n", "EndingPos", m_EndingPos);
+
+	fprintf(m_RHKStream, "%s\t\t%d\n", "ROI_Num  ", m_ROICount);
+
+	fprintf(m_RHKStream, "%s\t\t%.2f\n", "MIN_TEMP(℃)", m_ScaleMin);
+
+	fprintf(m_RHKStream, "%s\t\t%.2f\n", "MAX_TEMP(℃)", m_ScaleMax);
+
+	fprintf(m_RHKStream, "%s\t\t%.2f\n", "Treshold(℃)", m_Threshold);
+
+	fprintf(m_RHKStream, "\n\n");
+
+	CString RowData[] = { "Index", "Date_Time"/*, "Distance(mm)", "Emissivity",	"Transmission" */ };
+	CString ROI_str = "ROI_";
+
+	for (int i = 0; i<(sizeof(RowData) / sizeof(RowData[0])); i++)
+	{
+		fprintf(m_RHKStream, "%s\t", RowData[i]);
+	}
+	for (int i = 0; i < m_ROICount; i++)
+	{
+		fprintf(m_RHKStream, "%s%d\t", ROI_str, i + 1);
+	}
+	fprintf(m_RHKStream, "Spread\t");
+
+	fprintf(m_RHKStream, "\n\t\t\t\t\t");
+	//for (int i = 0; i < m_ROICount; i++)
+	//{
+	//	//fprintf(m_RHKStream, "MIN\tMAX\tAVG\t");
+	//	fprintf(m_RHKStream, "MAX\t");
+	//}
+
+	//fprintf(m_RHKStream, "\n\n");
+	fprintf(m_RHKStream, "\n");
+
+	return bRet;
 }
 
 bool CPyroSoftMDoc::CreateRawDataFile(CString FileName)
@@ -1971,81 +2156,58 @@ bool CPyroSoftMDoc::CreateRawDataFile(CString FileName)
 	return bRet;
 }
 
-bool CPyroSoftMDoc::SaveResultData(CString FileName, int sizeX, int sizeY, float* pBuffer)
-{
-	FILE *stream;
-	CFileFind pFind;
-
-	CString ConfigFileName = FileName;
-
-	stream = fopen((CStringA)ConfigFileName, "a+");
-
-	BOOL bRet = pFind.FindFile((CStringA)ConfigFileName);
-
-	// [Mesurement]
-	fprintf(stream, "[Mesurement]\n");
-	fprintf(stream, "Emissivity=%.2f\n", m_Emissivity);
-	fprintf(stream, "Transmission=%.2f\n\n", m_Transmission);
-
-	// [Scaling]
-	fprintf(stream, "[Scaling]\n");
-	fprintf(stream, "ColorBar=%d\n", m_nBar);
-	fprintf(stream, "NumberOfColor=%d\n", m_NoCol);
-	fprintf(stream, "Max=%.0f℃\n", m_ScaleMax);
-	fprintf(stream, "Min=%.0f℃\n", m_ScaleMin);
-	fprintf(stream, "IsoTherm=%.0f℃\n\n", m_ScaleIsoTherm);
-
-	// [Focus]
-	fprintf(stream, "[Focus]\n");
-	fprintf(stream, "Location=%d\n\n", m_FocusingIndex);
-
-	//[NMS Infomation]
-	fprintf(stream, "[NMS Infomation]\n");
-	fprintf(stream, "Threshold=%.2f℃\n\n", m_Threshold);
-
-	// [Reference ]
-	fprintf(stream, "[Reference]\n");
-
-	// [Measurement]
-	fprintf(stream, "[Measurement]\n");
-	fprintf(stream, "HFOV=%.1f℃\n", m_CamHFOV);
-	fprintf(stream, "VFOV=%.1f℃\n", m_CamVFOV);
-	fprintf(stream, "IncidentAngle=%.1f℃\n", m_CamIncidentAngle);
-	fprintf(stream, "Distance=%.2fcm\n\n\n", m_CamDistance);
-
-	fclose(stream);
-
-	return bRet;
-}
-
 void CPyroSoftMDoc::CloseRHKData()
 {
-	if (m_bRawDataSave)
+	if (m_OpenMode == 3)		// Online Mode
 	{
-		CTime DateTime = CTime::GetCurrentTime();
-		CString	strDate = DateTime.Format(_T("%Y-%m-%d %H:%M:%S"));
+		if (m_bRawDataSave && m_RHK_logging == true)
+		{
+			CTime DateTime = CTime::GetCurrentTime();
+			CString	strDate = DateTime.Format(_T("%Y-%m-%d %H:%M:%S"));
+			CString renameRHKDataFileName = newRHKDataFileName;
 
-		fseek(m_RHKStream, SS_ET_OFFSET, SEEK_SET);
-		fprintf(m_RHKStream, "%s\t\t%s\n", "EndTime  ", strDate);
-		fclose(m_RHKStream);
+			fseek(m_RHKStream, SS_ET_OFFSET, SEEK_SET);
+			fprintf(m_RHKStream, "%s\t\t%s\n", "EndTime  ", strDate);
+			fclose(m_RHKStream);
+
+			m_RHKStream = NULL;
+		}
+	}
+	else if (m_OpenMode == 1)	// IRDX Mode
+	{
+		if (m_bRawDataSave && theApp.m_bIRDXLoggingRunning == true)
+		{
+			CTime DateTime = CTime::GetCurrentTime();
+			CString	strDate = DateTime.Format(_T("%Y-%m-%d %H:%M:%S"));
+			CString renameRHKDataFileName = newRHKDataFileName;
+
+			fseek(m_RHKStream, SS_ET_OFFSET, SEEK_SET);
+			fprintf(m_RHKStream, "%s\t\t%s\n", "EndTime  ", strDate);
+			fclose(m_RHKStream);
+
+			m_RHKStream = NULL;
+		}
 	}
 }
 
-
-bool CPyroSoftMDoc::SaveRHKData(CString FileName, bool flag)
+bool CPyroSoftMDoc::AddRHKData(CString FileName, bool flag)
 {
 	CFileFind pFind;
 
 	CString ConfigFileName = FileName;
+	CString	m_IRDXDateTime = theApp.m_systemDate + " " + theApp.m_systemTime;
 
 	BOOL bRet = pFind.FindFile((CStringA)ConfigFileName);
 
-	SaveRowData(m_RHKStream, flag);
+	if(m_OpenMode == 1)		// IRDX mode
+		WriteRHKData(m_RHKStream, flag, m_IRDXDateTime);
+	else					// Online or Simualtion mode
+		WriteRHKData(m_RHKStream, flag, m_StrDateTime);
 
 	return bRet;
 }
 
-void CPyroSoftMDoc::SaveRowData(FILE *stream, bool flag)
+/*void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
 {
 	unsigned long id = 0;
 	unsigned long type = 0;
@@ -2059,7 +2221,7 @@ void CPyroSoftMDoc::SaveRowData(FILE *stream, bool flag)
 
 	fprintf(stream, "%d\t", m_AcqIndex++);
 
-	fprintf(stream, "%s\t", m_StrDateTime);
+	fprintf(stream, "%s\t", DateTime);
 
 	fprintf(stream, "%.2lf\t", m_RHKTotalDistance);
 
@@ -2073,8 +2235,56 @@ void CPyroSoftMDoc::SaveRowData(FILE *stream, bool flag)
 	}
 
 	fprintf(stream, "\n");
-}
+}*/
+void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
+{
+	unsigned long id = 0;
+	unsigned long type = 0;
 
+	theApp.DDAQ_IRDX_DEVICE_GetID(m_hIRDX_Doc, &id, &type);
+
+	bool ok = false;
+	float temp = 0.0f;
+
+	theApp.DDAQ_IRDX_DEVICE_GetCameraTemp(m_hIRDX_Doc, &temp, &ok);
+
+	fprintf(stream, "%d\t", m_AcqIndex++);
+
+	CString dummy;
+	AfxExtractSubString(dummy, DateTime, 0, '.');
+	fprintf(stream, "%s\t", dummy);
+
+	//fprintf(stream, "%.2lf\t", m_RHKTotalDistance);
+
+	//fprintf(stream, "%.2f\t", m_Emissivity);
+
+	//fprintf(stream, "%.2f\t", m_Transmission);
+
+	for (int i = 0; i < m_ROICount; i++)
+	{
+		//fprintf(stream, "%.2f\t%.2f\t%.2f\t", m_ResultData.TMin[i], m_ResultData.TMax[i], m_ResultData.TAvg[i]);
+		fprintf(stream, "%.2f\t", m_ResultData.TMax[i]);
+	}
+
+	dummy.Format("");
+	int iTemp = 0;
+	for (int k = 0; k < MAX_ROI_CNT; k++) {
+		if (m_ResultData.TMax[k] != 0) iTemp++;
+	}
+	bool tmpFlag = false;
+	for (int k = 0; k < iTemp; k++) {
+		if (m_ResultData.TMax[k] < m_spreadDetctRange) {
+			tmpFlag = true;
+			break;
+		}
+	}
+	if (tmpFlag == true) dummy.Format(" ");
+	else dummy.Format("%.1f", m_spreadTempr);
+
+	fprintf(stream, "%s\t", dummy);
+
+	fprintf(stream, "\n");
+}
 
 bool CPyroSoftMDoc::SaveRawData(CString FileName, int sizeX, int sizeY, float* pBuffer)
 {
@@ -2117,7 +2327,6 @@ bool CPyroSoftMDoc::SaveRawData(CString FileName, int sizeX, int sizeY, float* p
 }
 
 /////////////////////////////////////////////////////////////////////////////
-
 void CPyroSoftMDoc::OnCloseDocument()
 {
 	theApp.m_pMainWnd->SetWindowText("RHK Thermal Imaging System");
@@ -2139,6 +2348,8 @@ void CPyroSoftMDoc::OnCloseDocument()
 	// Save Config
 	if (m_OpenMode == 2 || m_OpenMode == 3)
 		SaveConfig();
+	else
+		SaveIRDXConfig();
 
 	CDocument::OnCloseDocument();
 
@@ -2205,12 +2416,10 @@ BOOL CPyroSoftMDoc::OnSaveDocument(LPCTSTR lpszPathName)
 	return TRUE;
 	//return CDocument::OnSaveDocument(lpszPathName);
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CPyroSoftMDoc::OnDeviceDoStart()
 {
-	//theApp.m_pMainWnd->SetWindowText("RHK Thermal Imaging System");
-
 	TMessagingType	msg_type = theApp.GetMessagingType();
 
 	HWND	msg_hwnd = (msg_type == Msg_Window) ? AfxGetMainWnd()->m_hWnd : 0;
@@ -2240,63 +2449,88 @@ void CPyroSoftMDoc::OnDeviceDoStart()
 
 void CPyroSoftMDoc::OnDeviceLoggingStart()
 {
-	int IRDX = 0;
-	int RawData = 1;
-	int ResultData = 2;
-	int RHKData = 3;
+	if (m_nDDAQDeviceNo)	// Online mode or simulation mode
+	{
+		int IRDX = 0;
+		int RHKData = 3;
 
-	theApp.m_bLoggingRunning = true;
-	m_bRawDataSave = true;
-	m_ChartFlag = true;
+		theApp.m_bLoggingRunning = true;
+		m_bRawDataSave = true;
+		m_ChartFlag = true;					// TChart refresh flag
 
-	m_SaveEveryRecord = true;
-	theApp.m_StatusInfFlag = true;
-	CString newIRDXFileName = GetNewDataFileName(IRDX);
-	newRawDataFileName = GetNewDataFileName(RawData);
-	newResultDataFileName = GetNewDataFileName(ResultData);
-	newRHKDataFileName = GetNewDataFileName(RHKData);
+		m_SaveEveryRecord = true;
+		theApp.m_StatusInfFlag = true;
+		CString newIRDXFileName = GetNewDataFileName(IRDX);
 
-	m_RHKStartTime = CTime::GetCurrentTime();
+		m_RHKStartTime = CTime::GetCurrentTime();
 
-	// ,주기 1000ms
-	TIMECAPS caps;
-	timeGetDevCaps(&caps, sizeof(caps));
-	theApp.m_ClientTimerID = timeSetEvent(1000, caps.wPeriodMin, ClientTimer, (DWORD)NULL, TIME_PERIODIC);
+		// 저장 및 TChart update,주기 1000ms
+		TIMECAPS caps;
+		timeGetDevCaps(&caps, sizeof(caps));
 
-	// laser timer, 주기 100ms
-	timecaps_tag laser_caps;
-	timeGetDevCaps(&laser_caps, sizeof(caps));
-	theApp.m_LaserTimerID = timeSetEvent(LASER_TIMER_FREQUENCY, laser_caps.wPeriodMin, LaserTimer, (DWORD)NULL, TIME_PERIODIC);
+		////	IRDX File 만들기		////
+		if (theApp.DDAQ_IRDX_FILE_OpenWrite(newIRDXFileName, true, &m_hIRDX_WRITE))
+			m_bRawDataOpen = true;
 
-	//IRDX File 만들기
-	if (theApp.DDAQ_IRDX_FILE_OpenWrite(newIRDXFileName, true, &m_hIRDX_WRITE))
-		m_bRawDataOpen = true;
-	//if (theApp.DDAQ_IRDX_FILE_OpenReadWrite(newIRDXFileName, true, &m_hIRDX_WRITE))
-	//	m_bRawDataOpen = true;
-	//if (theApp.DDAQ_IRDX_FILE_OpenWrite(newIRDXFileName, true, &m_hIRDX_WRITE))
-	//	m_bRawDataOpen = true;
+		////	RHK File 만들기			////
+		newRHKDataFileName = GetNewDataFileName(RHKData);
 
-	if (!CreateRHKDataFile(newRHKDataFileName))
-		AfxMessageBox("파일을 만들지 못하였습니다.\n경로를 확인하세요.");
+		if (!CreateRHKDataFile(newRHKDataFileName))
+			AfxMessageBox("파일을 만들지 못하였습니다.\n경로를 확인하세요.");
+		else 
+		{
+			m_RHK_logging = true;				// RHK text file logging flag
+			AddRHKData(newRHKDataFileName, true);
+		}
 
-	// Property 비활성화
-	theApp.m_pPropertyWnd->pDataAcq_AcqFreq->Enable(FALSE);
+		////	저장 타이머 이벤트		////
+		theApp.m_ClientTimerID = timeSetEvent(1000, caps.wPeriodMin, ClientTimer, (DWORD)NULL, TIME_PERIODIC);
+		theApp.m_loggingIntervalTimerID = timeSetEvent(theApp.m_loggingInterval, caps.wPeriodMin, LoggingIntervalTimer, (DWORD)NULL, TIME_PERIODIC);
 
-	theApp.m_pPropertyWnd->pRawDataSaveEnable->Enable(FALSE);
-	theApp.m_pPropertyWnd->pRawDataSaveFilePath->Enable(FALSE);
-	theApp.m_pPropertyWnd->pResultDataSaveFilePath->Enable(FALSE);
-	//theApp.m_pPropertyWnd->pMeasureDataAutoETMode->Enable(FALSE);
+		// Property 활성화 여부
+		PropertyEnableUpdate(FALSE);
 
-	theApp.m_pPropertyWnd->UpdateData();
+		theApp.m_pPropertyWnd->UpdateData();
 
-	UpdateAllViews(NULL, 1);
+		UpdateAllViews(NULL, 1);
+	}
+	else		// IRDX mode
+	{
+		int RHKData = 3;
+
+		theApp.m_bIRDXLoggingRunning = true;
+		m_bRawDataSave = true;
+
+		newRHKDataFileName = GetNewDataFileName(RHKData);
+
+		if (!CreateRHKDataFile(newRHKDataFileName))
+			AfxMessageBox("파일을 만들지 못하였습니다.\n경로를 확인하세요.");
+
+		//AddRHKData(newRHKDataFileName, true);
+	}
+}
+
+void CPyroSoftMDoc::PropertyEnableUpdate(BOOL flag)
+{
+	theApp.m_pPropertyWnd->pDataAcq_AcqFreq->Enable(flag);
+
+	theApp.m_pPropertyWnd->pRawDataSaveEnable->Enable(flag);
+	theApp.m_pPropertyWnd->pRawDataSaveFilePath->Enable(flag);
+	theApp.m_pPropertyWnd->pResultDataSaveFilePath->Enable(flag);
+	theApp.m_pPropertyWnd->pDataAcq_LoggingInterval->Enable(flag);
+	theApp.m_pPropertyWnd->pMeasureDataZoneInfoEnable->Enable(flag);
+
+	//if (m_Auto_ET_Mode)
+		//theApp.m_pPropertyWnd->pMeasureDataAutoETMode->Enable(flag);
 }
 
 void CPyroSoftMDoc::OnUpdateDeviceDoStart(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(m_nDDAQDeviceNo && !theApp.m_bLoggingRunning);
+	if (m_nDDAQDeviceNo)
+		pCmdUI->Enable(!theApp.m_bLoggingRunning);
+	else
+		pCmdUI->Enable(!theApp.m_bIRDXLoggingRunning);
 }
-
 
 void CPyroSoftMDoc::OnDeviceDoStop()
 {
@@ -2317,74 +2551,82 @@ void CPyroSoftMDoc::OnDeviceDoStop()
 	theApp.m_pPropertyWnd->pRawDataSaveEnable->Enable(TRUE);
 	theApp.m_pPropertyWnd->pRawDataSaveFilePath->Enable(TRUE);
 	theApp.m_pPropertyWnd->pResultDataSaveFilePath->Enable(TRUE);
-	//theApp.m_pPropertyWnd->pMeasureDataAutoETMode->Enable(TRUE);
+	theApp.m_pPropertyWnd->pDataAcq_LoggingInterval->Enable(TRUE);
 
 	UpdateAllViews(NULL, 1);
 }
 
 void CPyroSoftMDoc::OnDeviceLoggingStop()
 {
-	m_AcqIndex = 0;		//속성창의 Data Acquisition ->Index
-
-	if (m_hIRDX_WRITE != INVALID_HANDLE_VALUE && m_bRawDataOpen) {
-		theApp.DDAQ_IRDX_FILE_Close(m_hIRDX_WRITE);
-		CloseRHKData();
-		m_bRawDataOpen = false;
-		m_bFrameNum = 0;
-	}
-
-	m_bRawDataSave = false;
-	theApp.m_bLoggingRunning = false;
-	m_RHK_log_done = false;
-
-	m_RHK_logging = false;	// 데이터 로깅 Flag
-	m_ET_idx = 0;			// Emissivity, Transmission 인덱스 초기화
-	m_row_switch_count = 0; // 소성로의 대상체가 온도가 switch 될때 flag count !!!!!!!!
-	m_low_temp_idx = 0;		// 대상물의 온도가 낮을 때 ROI 갯수
-
-	theApp.m_RHK_name = "";
-
-	if (theApp.m_ClientTimerID != NULL)
-		timeKillEvent(theApp.m_ClientTimerID);
-
-	// Property 활성화
-	theApp.m_pPropertyWnd->pDataAcq_AcqFreq->Enable(TRUE);
-
-	theApp.m_pPropertyWnd->pRawDataSaveEnable->Enable(TRUE);
-	theApp.m_pPropertyWnd->pRawDataSaveFilePath->Enable(TRUE);
-	theApp.m_pPropertyWnd->pResultDataSaveFilePath->Enable(TRUE);
-
-	m_RHKEndTime = CTime::GetCurrentTime();
-
-	// ROI값들 초기화		///mody 05-17
-	InitROI();
-	// RHK값 초기화
-	InitRHKValues();
-
-	if (theApp.m_FocusFlag && m_OpenMode == 3)
+	if (m_nDDAQDeviceNo)
 	{
-		BeginWaitCursor();
-		////////
-		unsigned short Pos;
-		unsigned short Status;
+		m_AcqIndex = 0;					//속성창의 Data Acquisition ->Index
 
-		theApp.DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(m_hIRDX_Doc, &Pos, &Status);
+		if (m_hIRDX_WRITE != INVALID_HANDLE_VALUE && m_bRawDataOpen) {
+			theApp.DDAQ_IRDX_FILE_Close(m_hIRDX_WRITE);
+			CloseRHKData();
+			m_bRawDataOpen = false;
+			m_bFrameNum = 0;
+		}
 
-		theApp.DDAQ_IRDX_ACQUISITION_SetMotorFocusPos(m_hIRDX_Doc, 0);
-		Sleep(Pos * 2 / 3);
-		theApp.DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(m_hIRDX_Doc, &Pos, &Status);
-		////////
-		EndWaitCursor();
+		m_bRawDataSave = false;
+		theApp.m_bLoggingRunning = false;
+		m_RHK_log_done = false;
+
+		m_RHK_logging = false;			// 데이터 로깅 Flag
+		m_ET_idx = 0;					// Emissivity, Transmission 인덱스 초기화
+		m_row_switch_count = 0;			// 소성로의 대상체가 온도가 switch 될때 flag count !!!!!!!!
+		m_low_temp_idx = 0;				// 대상물의 온도가 낮을 때 ROI 갯수
+
+		theApp.m_RHK_name = "";
+
+		if (theApp.m_ClientTimerID != NULL)
+			timeKillEvent(theApp.m_ClientTimerID);
+
+		if (theApp.m_loggingIntervalTimerID != NULL)
+			timeKillEvent(theApp.m_loggingIntervalTimerID);
+		
+		// Property 활성화 여부
+		PropertyEnableUpdate(TRUE);
+
+		m_RHKEndTime = CTime::GetCurrentTime();
+
+		// ROI값들 초기화		///mody 05-17
+		InitROI();
+		// RHK값 초기화
+		InitRHKValues();
+
+		UpdateAllViews(NULL, 1);
+	}
+	else		// IRDX mode
+	{
+		int RHKData = 3;
+
+		CloseRHKData();
+
+		theApp.m_bIRDXLoggingRunning = false;
+		m_bRawDataSave = false;
 	}
 
-	UpdateAllViews(NULL, 1);
+	m_bSpreadCondition = true;
 }
 
 void CPyroSoftMDoc::InitROI()
 {
-	for (int i = m_ROICount; i < MAX_ROI_NUM; i++){
+	for (int i = 0; i < m_ROICount; i++) {
 		min_x[i] = 0;
+		min_y[i] = 0;
 		max_x[i] = 0;
+		max_y[i] = 0;
+
+		m_ResultData.TMinX[i] = 0;
+		m_ResultData.TMinY[i] = 0;
+		m_ResultData.TMaxX[i] = 0;
+		m_ResultData.TMaxY[i] = 0;
+
+		m_ResultData.TMax[i] = 0;
+		m_ResultData.TMin[i] = 0;
+		m_ResultData.TAvg[i] = 0;
 	}
 }
 
@@ -2396,15 +2638,15 @@ void CPyroSoftMDoc::InitRHKValues()
 	m_RHKZoneCount = -1;
 	
 	m_RHKSpenTime = m_RHKStartTime - m_RHKStartTime;
-
-	/// 끝이냐 처음이냐에 따라 값이 달라진다.
-	m_FocusLocation = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 void CPyroSoftMDoc::OnUpdateDeviceDoStop(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(m_nDDAQDeviceNo && theApp.m_bLoggingRunning);
+	if(m_nDDAQDeviceNo)
+		pCmdUI->Enable(theApp.m_bLoggingRunning);
+	else
+		pCmdUI->Enable(theApp.m_bIRDXLoggingRunning);
 }
 
 void CPyroSoftMDoc::OnDataacquisitionShowmin()
@@ -2531,95 +2773,421 @@ CString	CPyroSoftMDoc::GetNewDataFileName(int SaveType)
 	return strFileName;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
-void CPyroSoftMDoc::OnButtonFocusN()
-{
+void CPyroSoftMDoc::OnButtonFocusN() {
+	theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_NEAR);
+}
 
-	bool ret = theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_NEAR);
-	//bool ret = true;
+void CPyroSoftMDoc::OnUpdateFocusN(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3);// && m_FocusPosition < END_FOCUS_POSITION);
+}
 
-	if (ret && m_FocusingIndex>0) {
-		m_FocusingIndex = 0;
+void CPyroSoftMDoc::OnButtonFocusNStep() {
+	theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_NEAR_STEP);
+}
 
-		CString s;
-		s.Format("%d", m_FocusingIndex);
+void CPyroSoftMDoc::OnUpdateFocusNStep(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3);// && m_FocusPosition < END_FOCUS_POSITION);
+}
+
+void CPyroSoftMDoc::OnButtonFocusFStep() {
+	theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_FAR_STEP);
+}
+
+void CPyroSoftMDoc::OnUpdateFocusFStep(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3);// && m_FocusPosition > START_FOCUS_POSITION);
+}
+
+void CPyroSoftMDoc::OnButtonFocusF() {
+	theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_FAR);
+}
+
+void CPyroSoftMDoc::OnUpdateFocusF(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3);// && m_FocusPosition > START_FOCUS_POSITION);
+}
+
+void CPyroSoftMDoc::OnDataplayerPreviousrecord() {
+	if (m_IdxDS > 0) {
+		theApp.DDAQ_IRDX_FILE_SetCurDataSet(m_hIRDX_Doc, m_IdxDS - 1);
+		m_IdxDS--;
+	
 		CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-		pFrame->m_wndProperties.pFocusLocation->SetValue((_variant_t)(s));
+		pFrame->m_DataPlaySlider.SetPos(m_IdxDS);
+	
+		m_bPreviousBtnClick = true;
+	
+		IRDXUpdate();
+	
+		theApp.m_pPropertyWnd->UpdateDataSet();
 	}
 }
 
+void CPyroSoftMDoc::OnUpdateDataplayerPreviousrecord(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(m_IdxDS>0 && !m_bDataPlay);
+}
 
-void CPyroSoftMDoc::OnButtonFocusNStep()
-{
-	bool ret = theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_NEAR_STEP);
-	//bool ret = true;
+void CPyroSoftMDoc::OnDataplayerNextrecord() {
+	if (m_IdxDS < m_NoDS - 1) {
+		theApp.DDAQ_IRDX_FILE_SetCurDataSet(m_hIRDX_Doc, m_IdxDS + 1);
 
-	if (ret && m_FocusingIndex>0) {
-		m_FocusingIndex--;
+		if (m_max_idxDS < m_IdxDS)
+		{
+			m_max_idxDS = m_IdxDS;
+			m_bPreviousBtnClick = false;
+		}
+		else
+			m_bPreviousBtnClick = true;
 
-		CString s;
-		s.Format("%d", m_FocusingIndex);
+		m_IdxDS++;
+
 		CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-		pFrame->m_wndProperties.pFocusLocation->SetValue((_variant_t)(s));
+		pFrame->m_DataPlaySlider.SetPos(m_IdxDS);
+
+		IRDXUpdate();
+
+		if (theApp.m_bIRDXLoggingRunning && !(m_bPreviousBtnClick))
+			AddRHKData(newRHKDataFileName, true);
+
+		theApp.m_pPropertyWnd->UpdateDataSet();
 	}
 }
 
+void CPyroSoftMDoc::OnUpdateDataplayerNextrecord(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(m_IdxDS < m_NoDS - 1 && !m_bDataPlay);
+}
 
-void CPyroSoftMDoc::OnButtonFocusFStep()
+void CPyroSoftMDoc::OnDataplayerPlay() 
 {
-	bool ret = theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_FAR_STEP);
-	//bool ret = true;
+	if (theApp.m_TimerID == NULL)
+	{
+		m_bDataPlay = true;
 
-	if (ret && m_FocusingIndex<172) {
-		m_FocusingIndex++;
+		POSITION pos = GetFirstViewPosition();
+		CView* pView;
+		pView = GetNextView(pos);
+		((CGlassFlowView *)pView)->OnIRDXDataplayerPlay();
 
-		CString s;
-		s.Format("%d", m_FocusingIndex);
-		CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-		pFrame->m_wndProperties.pFocusLocation->SetValue((_variant_t)(s));
+		theApp.m_pPropertyWnd->pDataAcq_AcqFreq->Enable(false);
+	}
+
+}
+
+void CPyroSoftMDoc::OnUpdateDataplayerPlay(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(!m_bDataPlay && m_IdxDS < m_NoDS - 1);
+}
+
+void CPyroSoftMDoc::OnDataplayerStop() 
+{
+	if (theApp.m_TimerID != NULL)
+	{
+		m_bDataPlay = false;
+
+		if (theApp.m_TimerID != NULL) {
+			KillTimer(m_GFV_Hwnd, theApp.m_TimerID);
+			theApp.m_TimerID = NULL;
+		}
+		
+
+		theApp.m_pPropertyWnd->pDataAcq_AcqFreq->Enable(true);
 	}
 }
 
+void CPyroSoftMDoc::OnUpdateDataplayerStop(CCmdUI *pCmdUI) {
+	pCmdUI->Enable(m_bDataPlay && m_NoDS>1);
+}
 
-void CPyroSoftMDoc::OnButtonFocusF()
+void CPyroSoftMDoc::OnSwitchLeftSide()
 {
-	bool ret = theApp.DDAQ_DEVICE_DO_MotorFocus(m_nDDAQDeviceNo, DDAQ_MOTORFOCUS_CMD_FAR);
-	//bool ret = true;
+	if (BROI->GetDirection() == LEFT_SIDE)
+		return;
 
-	if (ret && m_FocusingIndex<172) {
-		m_FocusingIndex = 172;
+	SwitchDirection();
 
-		CString s;
-		s.Format("%d", m_FocusingIndex);
-		CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-		pFrame->m_wndProperties.pFocusLocation->SetValue((_variant_t)(s));
+	BROI->SetDirection(LEFT_SIDE);
+
+	UpdateAllViews(NULL, 1);
+}
+
+void CPyroSoftMDoc::OnUpdateSwitchLeftSide(CCmdUI *pCmdUI)
+{
+	if (BROI->GetDirection() == LEFT_SIDE)
+		pCmdUI->SetCheck(TRUE);
+	else
+		pCmdUI->SetCheck(FALSE);
+}
+
+void CPyroSoftMDoc::OnSwitchRightSide()
+{
+	if (BROI->GetDirection() == RIGHT_SIDE)
+		return;
+
+	SwitchDirection();
+
+	BROI->SetDirection(RIGHT_SIDE);
+
+	UpdateAllViews(NULL, 1);
+}
+
+void CPyroSoftMDoc::OnUpdateSwitchRightSide(CCmdUI *pCmdUI)
+{
+	if (BROI->GetDirection() == RIGHT_SIDE)
+		pCmdUI->SetCheck(TRUE);
+	else
+		pCmdUI->SetCheck(FALSE);
+}
+
+void CPyroSoftMDoc::SwitchDirection()
+{
+	bool tmpFirst;
+	bool tmpDrawDone[MAX_EROI_CNT];
+
+	int tmpCount;
+	int tmpLX, tmpRX, tmpTY, tmpBY;
+	int lx[MAX_EROI_CNT], rx[MAX_EROI_CNT], ty[MAX_EROI_CNT], by[MAX_EROI_CNT];
+
+	tmpLX = BROI->GetPosXY(X_LEFT);
+	tmpRX = BROI->GetPosXY(X_RIGHT);
+	tmpTY = BROI->GetPosXY(Y_TOP);
+	tmpBY = BROI->GetPosXY(Y_BOTTOM);
+
+	BROI->SetPosXY(X_LEFT, BROI->GetOppPosXY(X_LEFT));
+	BROI->SetPosXY(X_RIGHT, BROI->GetOppPosXY(X_RIGHT));
+	BROI->SetPosXY(Y_TOP, BROI->GetOppPosXY(Y_TOP));
+	BROI->SetPosXY(Y_BOTTOM, BROI->GetOppPosXY(Y_BOTTOM));
+
+	BROI->SetOppPosXY(X_LEFT, tmpLX);
+	BROI->SetOppPosXY(X_RIGHT, tmpRX);
+	BROI->SetOppPosXY(Y_TOP, tmpTY);
+	BROI->SetOppPosXY(Y_BOTTOM, tmpBY);
+
+	// First flag switch
+	tmpFirst = EROI[0]->GetDrawFirst();
+
+	EROI[0]->SetDrawFirst(EROI[0]->GetOppDrawFirst());// = m_TempEXROI[0].isDrawFirst;
+
+	EROI[0]->SetOppDrawFirst(tmpFirst);
+
+	// Count num switch
+	tmpCount = EROI[0]->GetCount();
+
+	EROI[0]->SetCount(EROI[0]->GetOppCount());
+
+	EROI[0]->SetOppCount(tmpCount);
+
+	// Each point value switch
+	for (int i = 0; i < MAX_EROI_CNT; i++)
+	{
+		tmpDrawDone[i] = EROI[i]->GetDrawDone();
+
+		EROI[i]->SetDrawDone(EROI[i]->GetOppDrawDone());
+
+		EROI[i]->SetOppDrawDone(tmpDrawDone[i]);
+
+		lx[i] = EROI[i]->GetPosXY(X_LEFT);
+		rx[i] = EROI[i]->GetPosXY(X_RIGHT);
+		ty[i] = EROI[i]->GetPosXY(Y_TOP);
+		by[i] = EROI[i]->GetPosXY(Y_BOTTOM);
+
+		EROI[i]->SetPosXY(X_LEFT	, EROI[i]->GetOppPosXY(X_LEFT));
+		EROI[i]->SetPosXY(X_RIGHT	, EROI[i]->GetOppPosXY(X_RIGHT));
+		EROI[i]->SetPosXY(Y_TOP		, EROI[i]->GetOppPosXY(Y_TOP));
+		EROI[i]->SetPosXY(Y_BOTTOM	, EROI[i]->GetOppPosXY(Y_BOTTOM));
+			
+		EROI[i]->SetOppPosXY(X_LEFT, lx[i]);
+		EROI[i]->SetOppPosXY(X_RIGHT, rx[i]);
+		EROI[i]->SetOppPosXY(Y_TOP, ty[i]);
+		EROI[i]->SetOppPosXY(Y_BOTTOM, by[i]);
 	}
 }
 
+//
+//////	POI Toolbar		////
+//void CPyroSoftMDoc::OnPOIDraw()
+//{
+//	if(m_POI_count < 10)
+//		m_POI_Mode = DRAW_POI;		// POI 그리기
+//}
+//
+//void CPyroSoftMDoc::OnUpdatePOIDraw(CCmdUI *pCmdUI)
+//{
+//	if (theApp.m_bLoggingRunning)
+//	{
+//		pCmdUI->Enable(FALSE);
+//	}
+//	else
+//		pCmdUI->SetCheck(m_POI_Mode == DRAW_POI);
+//}
+//
+//void CPyroSoftMDoc::OnPOIDelete()
+//{
+//	m_POI_Mode = MOVE_MODE;		// POI 지우기
+//
+//	if (m_POIArr.GetCount() > 0)
+//	{
+//		m_POI_count--;
+//		columnUpdateFlag = true;
+//
+//		if (m_isPoint_clicked == true) 
+//		{
+//			m_POIArr.RemoveAt(m_point_idx);
+//
+//			DeletedIndex.Add(pDoc->RunningIndex[m_point_idx]);
+//			RunningIndex.RemoveAt(m_point_idx);
+//
+//			// DeletedIndex Element Sorting
+//			SortCArray(pDoc->DeletedIndex, CompareInt);
+//		}
+//		else
+//		{
+//			m_POIArr.RemoveAt(pDoc->m_POIArr.GetCount()-1);
+//
+//			DeletedIndex.Add(pDoc->RunningIndex[pDoc->RunningIndex.GetCount() - 1]);
+//			RunningIndex.RemoveAt(pDoc->RunningIndex.GetCount()-1);
+//
+//			// DeletedIndex Element Sorting
+//			SortCArray(pDoc->DeletedIndex, CompareInt);
+//		}
+//	}
+//	this->Invalidate(FALSE);
+//	UpdateAllViews(NULL, 6);
+//
+//	m_isPoint_clicked = false;
+//}
+//
+//void CPyroSoftMDoc::OnUpdatePOIDelete(CCmdUI *pCmdUI)
+//{
+//	if (theApp.m_bLoggingRunning)
+//	{
+//		pCmdUI->Enable(FALSE);
+//	}
+//	else
+//		pCmdUI->SetCheck(m_POI_Mode == SPARE_MODE);
+//}
+//
+//void CPyroSoftMDoc::OnRoiRefMove()
+//{
+//	m_POI_Mode = MOVE_MODE;		// POI 이동
+//}
+//
+//void CPyroSoftMDoc::OnUpdateRoiRefMove(CCmdUI *pCmdUI)
+//{
+//	if (theApp.m_bLoggingRunning)
+//	{
+//		pCmdUI->Enable(FALSE);
+//	}
+//	else
+//		pCmdUI->SetCheck(m_POI_Mode == MOVE_MODE);
+//}
 
-void CPyroSoftMDoc::OnUpdateFocusN(CCmdUI *pCmdUI)
+
+void CPyroSoftMDoc::OnButtonZoomin()
 {
-	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3 && m_FocusingIndex>0);
-	//pCmdUI->Enable(m_FocusingIndex>0);
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	if (m_ZoomMode<11) 	m_ZoomMode++;
+
+	switch (m_ZoomMode) {
+	case ZOOM_QUATER:
+		m_ZoomRatio = 0.25;
+		break;
+	case ZOOM_HALF:
+		m_ZoomRatio = 0.5;
+		break;
+	case ZOOM_ONE:
+		m_ZoomRatio = 1;
+		break;
+	case ZOOM_TWOTIMES:
+		m_ZoomRatio = 2;
+		break;
+	case ZOOM_THREETIMES:
+		m_ZoomRatio = 3;
+		break;
+	case ZOOM_FOURTIMES:
+		m_ZoomRatio = 4;
+		break;
+	case ZOOM_FIVETIMES:
+		m_ZoomRatio = 5;
+		break;
+	case ZOOM_SIXTIMES:
+		m_ZoomRatio = 6;
+		break;
+	case ZOOM_EIGHTTIMES:
+		m_ZoomRatio = 8;
+		break;
+	case ZOOM_TENTIMES:
+		m_ZoomRatio = 10;
+		break;
+	case ZOOM_FIFTEENTIMES:
+		m_ZoomRatio = 15;
+		break;
+	default:
+		m_ZoomMode = ZOOM_AUTO;
+		m_ZoomRatio = 1;
+		break;
+	}
+	theApp.m_pPropertyWnd->OnChangedZoomOnly();
+	UpdateAllViews(NULL, 2);
 }
 
 
-void CPyroSoftMDoc::OnUpdateFocusNStep(CCmdUI *pCmdUI)
+void CPyroSoftMDoc::OnButtonZoomout()
 {
-	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3 && m_FocusingIndex>0);
-	//pCmdUI->Enable(m_FocusingIndex>0);
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	if (m_ZoomMode>0) 	m_ZoomMode--;
+
+	switch (m_ZoomMode) {
+	case ZOOM_AUTO:
+		m_ZoomRatio = 1;
+		break;
+	case ZOOM_QUATER:
+		m_ZoomRatio = 0.25;
+		break;
+	case ZOOM_HALF:
+		m_ZoomRatio = 0.5;
+		break;
+	case ZOOM_ONE:
+		m_ZoomRatio = 1;
+		break;
+	case ZOOM_TWOTIMES:
+		m_ZoomRatio = 2;
+		break;
+	case ZOOM_THREETIMES:
+		m_ZoomRatio = 3;
+		break;
+	case ZOOM_FOURTIMES:
+		m_ZoomRatio = 4;
+		break;
+	case ZOOM_FIVETIMES:
+		m_ZoomRatio = 5;
+		break;
+	case ZOOM_SIXTIMES:
+		m_ZoomRatio = 6;
+		break;
+	case ZOOM_EIGHTTIMES:
+		m_ZoomRatio = 8;
+		break;
+	case ZOOM_TENTIMES:
+		m_ZoomRatio = 10;
+		break;
+	default:
+		m_ZoomMode = ZOOM_AUTO;
+		m_ZoomRatio = 1;
+		break;
+	}
+	theApp.m_pPropertyWnd->OnChangedZoomOnly();
+	UpdateAllViews(NULL, 2);
 }
 
 
-void CPyroSoftMDoc::OnUpdateFocusFStep(CCmdUI *pCmdUI)
+void CPyroSoftMDoc::OnUpdateButtonZoomin(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3 && m_FocusingIndex<172);
-	//pCmdUI->Enable(m_FocusingIndex<172);
+	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
+	if (m_ZoomMode == 11) pCmdUI->Enable(FALSE);
+	else pCmdUI->Enable(TRUE);
 }
 
 
-void CPyroSoftMDoc::OnUpdateFocusF(CCmdUI *pCmdUI)
+void CPyroSoftMDoc::OnUpdateButtonZoomout(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(m_nDDAQDeviceNo && m_OpenMode == 3 && m_FocusingIndex<172);
-	//pCmdUI->Enable(m_FocusingIndex<172);
+	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
+	if (m_ZoomMode == 0)pCmdUI->Enable(FALSE);
+	else pCmdUI->Enable(TRUE);
 }

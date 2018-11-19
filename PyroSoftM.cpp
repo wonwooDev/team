@@ -21,6 +21,7 @@
 
 #include "DlgAddNewDevice.h"
 
+
 //#include "mmsystem.h"
 #include <dshow.h>
 
@@ -43,31 +44,35 @@ BEGIN_MESSAGE_MAP(CPyroSoftMApp, CWinAppEx)
 	ON_COMMAND(ID_FILE_PRINT_SETUP, &CWinAppEx::OnFilePrintSetup)
 	ON_COMMAND(ID_DEVICE_DO_OPENSIMULATION, &CPyroSoftMApp::OnDeviceDoOpensimulation)
 	ON_COMMAND(ID_DEVICE_DO_OPEN, OnDeviceDoOpen)
+	//ON_COMMAND(ID_DEVICE_DO_OPEN, OnDeviceDoOpensimulation)
 	//ON_WM_TIMER()
 	ON_COMMAND(ID_DEVICE_DO_SCAN, &CPyroSoftMApp::OnDeviceDoScan)
 END_MESSAGE_MAP()
 
 
 // CPyroSoftMApp 생성
-
 CPyroSoftMApp::CPyroSoftMApp()
 {
 	TimerEventID = 1024;
+	m_TimerID = 0;
 
 	m_bHiColorIcons = TRUE;
 
 	IRDX_Mode = 1;
 
 	m_ClientTimerID = NULL;
+	m_loggingIntervalTimerID = NULL;
+
 	m_dwTransactionID = 0;
 	m_strSingleValue = _T("");
 	m_uReadPeriod = 500;          // default value : 500 ms
 	m_uReadMode = EventMode;      // default mode : event
 	m_strImpExpFileName.Empty();
-	theApp.m_bLoggingRunning = false;
+	m_bLoggingRunning = false;
+	m_bIRDXLoggingRunning = false;
 
-	m_Laser_Distance = 0;
-	DAQ_TaskHandle = 0;
+//	m_Laser_Distance = 0;
+//	DAQ_TaskHandle = 0;
 
 	nResultDlgWidth = 0;
 	nStatusDlgHeight = 0;
@@ -88,6 +93,9 @@ CPyroSoftMApp::CPyroSoftMApp()
 	m_RHK_name = "";
 
 	m_bCameraConnected = false;
+
+	m_loggingInterval = 1000;
+	m_acqFreq = 8;			// 기본 Acqusition frequency
 
 	// 다시 시작 관리자 지원
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_ALL_ASPECTS;
@@ -157,9 +165,7 @@ BOOL CPyroSoftMApp::InitInstance()
 		return FALSE;
 	}
 
-
 	// OLE 라이브러리를 초기화합니다.
-
 	if (!AfxOleInit())
 	{
 		AfxMessageBox(IDP_OLE_INIT_FAILED);
@@ -183,28 +189,10 @@ BOOL CPyroSoftMApp::InitInstance()
 	// TODO: 이 문자열을 회사 또는 조직의 이름과 같은
 	// 적절한 내용으로 수정해야 합니다.
 
-	SetRegistryKey(_T("PyroSoftM"));
+	SetRegistryKey(_T("PyroSoftMLCC"));
 
 	//CleanState();
 
-
-	//*******************************************************************	
-	/*
-	char buf[_MAX_PATH];
-	char drive[_MAX_DRIVE]; char dir[_MAX_DIR];
-	char fname[_MAX_FNAME]; char ext[_MAX_EXT];
-	GetModuleFileName(m_hInstance, buf, _MAX_PATH);
-	_splitpath_s(buf, drive, dir, fname, ext);
-
-	free((void*)m_pszProfileName);
-	BOOL bEnable = AfxEnableMemoryTracking(FALSE);
-	//_makepath(buf, drive, dir, fname, "ini");
-	_makepath_s(buf, drive, dir, fname, _T("ini"));
-	m_pszProfileName = _tcsdup(buf);
-	AfxEnableMemoryTracking(bEnable);
-
-	//*******************************************************************
-	*/
 	LoadStdProfileSettings(6);  // MRU를 포함하여 표준 INI 파일 옵션을 로드합니다.
 
 	InitContextMenuManager();
@@ -270,8 +258,8 @@ BOOL CPyroSoftMApp::InitInstance()
 
 	m_pDataSocket = NULL;
 
-	ConnectionLaserDist();
-
+	//ConnectionLaserDist();
+	
 	Devicedetection();
 
 	return TRUE;
@@ -281,7 +269,7 @@ void CPyroSoftMApp::OnFileOpen()
 {
 	// TODO: Add your command handler code here
 	// 파일 형식 콤보박스에 등록할 필터를 정의한다. (*.*, *.cpp, *.txt)
-	if (m_bCameraConnected || m_bFileOpen) return;
+	if (m_bCameraConnected) return;
 
 	char name_filter[] = "IRDX Files (*.irdx)|*.irdx||";
 
@@ -310,22 +298,22 @@ void CPyroSoftMApp::OnFileOpen()
 	}
 }
 
-void CPyroSoftMApp::ConnectionLaserDist()
-{
-	int error;
-	/*********************************************/
-	// DAQmx Configure Code
-	/*********************************************/
-	error = DAQmxCreateTask("", &DAQ_TaskHandle);
-
-	DAQmxCreateAICurrentChan(DAQ_TaskHandle, "cDAQ1Mod1/ai0", "RHK Laser In", DAQmx_Val_RSE, -0.02, 0.02, DAQmx_Val_Amps,
-		DAQmx_Val_Internal, 95.5764, "");
-}
+//void CPyroSoftMApp::ConnectionLaserDist()
+//{
+//	int error;
+//	/*********************************************/
+//	// DAQmx Configure Code
+//	/*********************************************/
+//	error = DAQmxCreateTask("", &DAQ_TaskHandle);
+//
+//	DAQmxCreateAICurrentChan(DAQ_TaskHandle, "cDAQ1Mod1/ai0", "RHK Laser In", DAQmx_Val_RSE, -0.02, 0.02, DAQmx_Val_Amps,
+//		DAQmx_Val_Internal, 95.5764, "");
+//}
 
 int CPyroSoftMApp::ExitInstance()
 {
 	//TODO: 추가한 추가 리소스를 처리합니다.
-	DAQ_LASER_DISTANCE_DAQmxClearTask(DAQ_TaskHandle);
+	//DAQ_LASER_DISTANCE_DAQmxClearTask(DAQ_TaskHandle);
 
 	AfxOleTerm(FALSE);
 	
@@ -344,6 +332,17 @@ void CPyroSoftMApp::EndDataMsgThread()
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
+
+//void CPyroSoftMApp::PropertyUpdateMsgThread()
+//{
+//	if (m_pDataMsgThread)
+//	{
+//		m_pDataMsgThread->PostThreadMessage(WM_PropertyUpdateThread, 1024, 0);
+//		Sleep(10);
+//	}
+//}
+
+
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
@@ -456,10 +455,14 @@ void CPyroSoftMApp::DoErrorMessage(UINT ids, unsigned long nErrorCode, BOOL with
 
 CPyroSoftMDoc* CPyroSoftMApp::GetDocumentFromDevice(unsigned short DevNo)
 {
+
 	DevNo--;	// Index from 0
 
 	if (DevNo >= DDAQ_MAX_DEVICES)
 		return NULL;
+
+	if (m_DocWithDevice[DevNo] == NULL)
+		return pDocTemp;
 
 	return m_DocWithDevice[DevNo];
 }
@@ -1962,53 +1965,53 @@ bool CPyroSoftMApp::DDAQ_DEVICE_GET_MOTOR_FocusVersion(unsigned long nDaQDevNo, 
 	return true;
 }
 
-bool CPyroSoftMApp::DAQ_LASER_DISTANCE_DAQmxStartTask(TaskHandle THandle)
-{
-	int error = DAQmxStartTask(DAQ_TaskHandle);
-	
-	if (error == error)		// 에러에 대한 수정 요함
-		return true;
+//bool CPyroSoftMApp::DAQ_LASER_DISTANCE_DAQmxStartTask(TaskHandle THandle)
+//{
+//	int error = DAQmxStartTask(DAQ_TaskHandle);
+//	
+//	if (error == error)		// 에러에 대한 수정 요함
+//		return true;
+//
+//	return true;
+//}
 
-	return true;
-}
+//bool CPyroSoftMApp::DAQ_LASER_DISTANCE_DAQmxClearTask(TaskHandle THandle)
+//{
+//	int error;
+//
+//	if (DAQ_TaskHandle != 0)
+//	{
+//		error = DAQmxStopTask(DAQ_TaskHandle);
+//		if (error == error)		// 에러에 대한 수정 요함
+//			error = error;
+//		error = DAQmxClearTask(DAQ_TaskHandle);
+//		if (error == error)		// 에러에 대한 수정 요함
+//			return true;
+//	}
+//	return true;
+//}
 
-bool CPyroSoftMApp::DAQ_LASER_DISTANCE_DAQmxClearTask(TaskHandle THandle)
-{
-	int error;
-
-	if (DAQ_TaskHandle != 0)
-	{
-		error = DAQmxStopTask(DAQ_TaskHandle);
-		if (error == error)		// 에러에 대한 수정 요함
-			error = error;
-		error = DAQmxClearTask(DAQ_TaskHandle);
-		if (error == error)		// 에러에 대한 수정 요함
-			return true;
-	}
-	return true;
-}
-
-bool CPyroSoftMApp::DAQ_LASER_DAQmxReadAnalogScalarF64(TaskHandle THandle, float64 timeout, float64 *value, bool32 *reserved)
-{
-	int error;
-	double fA;
-	double rate;
-
-	if (DAQ_TaskHandle != 0)
-	{
-		error = DAQmxReadAnalogScalarF64(DAQ_TaskHandle, 0, &fA, NULL);
-
-		m_Laser_mA = roundXL(fA*1000.0f, 2);
-
-		rate = (fA - 0.004f) / (0.02f - 0.004f);
-
-		m_Laser_Distance = roundXL(5000.0f*rate, 0);
-
-		if (error == error)
-			return true;
-	}
-	return true;
-}
+//bool CPyroSoftMApp::DAQ_LASER_DAQmxReadAnalogScalarF64(TaskHandle THandle, float64 timeout, float64 *value, bool32 *reserved)
+//{
+//	int error;
+//	double fA;
+//	double rate;
+//
+//	if (DAQ_TaskHandle != 0)
+//	{
+//		error = DAQmxReadAnalogScalarF64(DAQ_TaskHandle, 0, &fA, NULL);
+//
+//		m_Laser_mA = roundXL(fA*1000.0f, 2);
+//
+//		rate = (fA - 0.004f) / (0.02f - 0.004f);
+//
+//		m_Laser_Distance = roundXL(5000.0f*rate, 0);
+//
+//		if (error == error)
+//			return true;
+//	}
+//	return true;
+//}
 
 double CPyroSoftMApp::roundXL(double x, int digit)
 {
@@ -2104,6 +2107,7 @@ void CPyroSoftMApp::OnDeviceDoOpensimulation()
 
 	pView = pDoc->GetNextView(pos);
 	((CResultView *)pView)->pDoc = pDoc;
+	((CResultView *)pView)->m_ResultDlg.m_SpreadTabDlg.pDoc = pDoc;
 
 	//***********************************************************
 
@@ -2133,8 +2137,8 @@ void CPyroSoftMApp::OnDeviceDoOpensimulation()
 
 	((CResultView *)pView)->m_ResultDlg.pDoc = pDoc;
 	((CResultView *)pView)->m_MaxTabDlg.pDoc = pDoc;
-	((CResultView *)pView)->m_MinTabDlg.pDoc = pDoc;
-	((CResultView *)pView)->m_AvgTabDlg.pDoc = pDoc;
+	((CResultView *)pView)->m_SpreadTabDlg.pDoc = pDoc;
+	//((CResultView *)pView)->m_AvgTabDlg.pDoc = pDoc;
 	((CResultView *)pView)->InitROIData();
 	((CROIGridView *)pPView)->InitStatusData();
 
@@ -2176,6 +2180,9 @@ void CPyroSoftMApp::Devicedetection()
 void CPyroSoftMApp::OnDeviceDoOpen()
 {
 	if (m_bCameraConnected || m_bFileOpen) return;
+
+	if (m_nNumDetectDevices == 0)
+		Devicedetection();
 
 	// get not used devices 
 	unsigned long	numNotUsedDevices = 0;
@@ -2226,6 +2233,12 @@ void CPyroSoftMApp::OnDeviceDoOpen()
 	}
 
 	isVaildSerialNum = sd.Right(8);
+
+	if (!(isVaildSerialNum == "C1183028" || isVaildSerialNum == "C1152228" || isVaildSerialNum == "C1118828"))
+	{
+		AfxMessageBox("등록된 카메라를 찾지 못하였습니다.\n관리자에게 문의하세요.");
+		return;
+	}
 
 	// available?
 	if (numRealDevices == 0)
@@ -2284,6 +2297,7 @@ void CPyroSoftMApp::OnDeviceDoOpen()
 
 	pView = pDoc->GetNextView(pos);
 	((CResultView *)pView)->pDoc = pDoc;
+	((CResultView *)pView)->m_ResultDlg.m_SpreadTabDlg.pDoc = pDoc;
 
 	//pView->UpdateWindow();
 
@@ -2313,37 +2327,35 @@ void CPyroSoftMApp::OnDeviceDoOpen()
 
 	((CResultView *)pView)->m_ResultDlg.pDoc = pDoc;
 	((CResultView *)pView)->m_MaxTabDlg.pDoc = pDoc;
-	((CResultView *)pView)->m_MinTabDlg.pDoc = pDoc;
-	((CResultView *)pView)->m_AvgTabDlg.pDoc = pDoc;
+	((CResultView *)pView)->m_SpreadTabDlg.pDoc = pDoc;
+	//((CResultView *)pView)->m_AvgTabDlg.pDoc = pDoc;
 	((CResultView *)pView)->InitROIData();
 	((CROIGridView *)pPView)->InitStatusData();
 
 	m_pPropertyWnd->ChangeProperties(pDoc);
 
-	DDAQ_DEVICE_GET_MOTOR_FocusVersion(DDAQDevicNo[dlg.m_SelDevice], &m_ForcedFocusFlg);
-	
-	if (m_ForcedFocusFlg == 3)
-	{
-		unsigned short Pos;
-		unsigned short Status;
-		m_FocusFlag = true;
+	//DDAQ_DEVICE_GET_MOTOR_FocusVersion(DDAQDevicNo[dlg.m_SelDevice], &m_ForcedFocusFlg);
 
-		BeginWaitCursor();
+	//if (m_ForcedFocusFlg == 3)
+	//{
+	//	unsigned short Pos;
+	//	unsigned short Status;
+	//	m_FocusFlag = true;
 
-		DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(pDoc->m_hIRDX_Doc, &Pos, &Status);
-		DDAQ_IRDX_ACQUISITION_SetMotorFocusPos(pDoc->m_hIRDX_Doc, 0);
-		Sleep(Pos * 2 / 3);
-		DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(pDoc->m_hIRDX_Doc, &Pos, &Status);
+	//	BeginWaitCursor();
 
-		EndWaitCursor();
-	}
+	//	DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(pDoc->m_hIRDX_Doc, &Pos, &Status);
+	//	pDoc->m_FocusPosition = Pos;
+	//	//DDAQ_IRDX_ACQUISITION_SetMotorFocusPos(pDoc->m_hIRDX_Doc, 0);
+	//	//DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(pDoc->m_hIRDX_Doc, &Pos, &Status);
+
+	//	EndWaitCursor();
+	//}
 
 	m_bCameraConnected = true;
 
 	pDoc->OnDeviceDoStart();
 }
-
-
 
 void CPyroSoftMApp::OnDeviceDoScan()
 {

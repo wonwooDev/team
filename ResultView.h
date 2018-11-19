@@ -48,9 +48,9 @@ public:
 	CFont				m_sFont;
 
 	CResultDlg			m_ResultDlg;
-	CMinTapDlg			m_MinTabDlg;
 	CMaxTabDlg			m_MaxTabDlg;
-	CAvgTabDlg			m_AvgTabDlg;
+	CMinTapDlg			m_SpreadTabDlg;
+	//CAvgTabDlg			m_AvgTabDlg;
 
 	int					m_Dlg_H;
 	unsigned long		m_XCount;
@@ -84,9 +84,8 @@ public:
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 
 
-
-
 	int Oldptr;
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
 
 

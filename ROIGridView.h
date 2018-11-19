@@ -11,10 +11,14 @@ class CROIGridView : public CView
 
 protected:
 	CROIGridView();           // 동적 만들기에 사용되는 protected 생성자입니다.
+
+	int	spreadCnt;
+
 	virtual ~CROIGridView();
 
 	void UpdateStatusData();
 
+	CString	CheckSpread();
 
 public:
 	CPyroSoftMDoc* pDoc;
@@ -24,7 +28,9 @@ public:
 
 	void AdjustLayout();
 	void InitStatusData();
-	void SetFont();
+	void PrintTemp(int startCnt, int endCnt, float* target_temp, long row);
+	void PrintTemp(int startCnt, int endCnt, float* target_temp, long row, int dummyCnt);
+	void SetColProperty(int startCnt, int endCnt, CString familyName, int colWidth, long col_index);
 
 	virtual void OnDraw(CDC* pDC);      // 이 뷰를 그리기 위해 재정의되었습니다.
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);

@@ -6,50 +6,24 @@
 #pragma once
 
 #include "..\DIASDAQ\DIASDAQDLL.h"
-#include "NIDAQmx.h"
+#include "OOI.h"
+//#include "NIDAQmx.h"
 
 
-#define MIN_X_PIXEL				0
+#define MIN_X_PIXEL				0					//	카메라에서 받아오는 픽셀정보로 대체해야한다.
 #define MAX_X_PIXEL				512 //320 //512
 #define	MIN_Y_PIXEL				0
 #define	MAX_Y_PIXEL				384 //240 //384
 
-#define	 N_AREA					8
-
-#define	DECTECTION_TIMEOUT_SEC	300
-
 #define MIN(x,y)				(x < y ? x : y) 
 #define MAX(x,y)				(x > y ? x : y) 
-#define POLYGONINSIDE			0 
-#define POLYGONOUTSIDE			1 
 
-#define MAXHFOV					36 //52 //36
-#define	MINHFOV					1
-#define	MAXVFOV					27 //40 //27
-#define MINVFOV					1
-#define	MAXINCIDENTANGLE		90
-#define	MININCIDENTANGLE		30
-#define	MAXCAMDISTANCE			10000
-#define	MINCAMDISTANCE			0
-
-#define GAPOFPIXEL				8
-
-//포스코 제 4철강 래들과 카메라와의 거리 및 각도 등의 값
-#define	ARRLENGTH				49
-#define PIXELARRLEN				48
-#define	EACHANGLEOFEIGHTPIEXL(x)	(x / 2.0f) / (MAX_Y_PIXEL / 2.0f) * 8
-
-#define	PI	3.14159265358979323846
-
-#define MAX_ROI_NUM				50
+#define MAX_ROI_CNT				50
 #define MAX_ET_PER_DISTANCE		200
 
 // 소성로 챔버의 Zone의 최대 갯수
 #define MAX_ZONE				50
 #define MAX_POI_NUM				20
-
-#define LASER_TIMER_ID			71129		// 레이져 ID값 - 201(7 11 29)
-#define LASER_TIMER_FREQUENCY	100			// 레이져 반복실행 시간 값		
 
 #define MAX_DISCRIMINANT_NUM	4
 #define MAX_PIXEL_AVG_NUM		5
@@ -59,6 +33,34 @@
 #define NUMBER_ONLY				2
 #define SHOW_ALL				3
 
+#define SHOW_BASE_ROI			1
+#define SHOW_EXCLUSIVE_ROI		2
+#define SHOW_ALL_ROI			3
+
+#define	START_FOCUS_POSITION	0
+#define MID_LIMIT_FOCUS_POS		200
+#define END_FOCUS_POSITION		28000
+
+#define	NEAR_FROM_CAMERA		0
+#define	FAR_FROM_CAMERA			1
+
+#define ZOOM_AUTO				0
+#define ZOOM_QUATER				1
+#define ZOOM_HALF				2
+#define ZOOM_ONE				3
+#define ZOOM_TWOTIMES			4
+#define ZOOM_THREETIMES			5
+#define ZOOM_FOURTIMES			6
+#define ZOOM_FIVETIMES			7
+#define ZOOM_SIXTIMES			8
+#define ZOOM_EIGHTTIMES			9
+#define ZOOM_TENTIMES			10
+#define ZOOM_FIFTEENTIMES		11
+
+#define MAX_EROI_CNT			5
+
+#define	LEFT_SIDE				0
+#define RIGHT_SIDE				1
 
 
 
@@ -69,8 +71,6 @@ typedef struct
 	float	Avg;
 
 	UINT	left, top, right, bottom;
-
-
 } RESULT_T;
 
 typedef struct
@@ -79,14 +79,14 @@ typedef struct
 	float Max;
 	float Avg;
 
-	float TMin[MAX_ROI_NUM];
-	float TMax[MAX_ROI_NUM];
-	float TAvg[MAX_ROI_NUM];
+	float TMin[MAX_ROI_CNT];
+	float TMax[MAX_ROI_CNT];
+	float TAvg[MAX_ROI_CNT];
 
-	int TMinX[MAX_ROI_NUM];
-	int TMinY[MAX_ROI_NUM];
-	int TMaxX[MAX_ROI_NUM];
-	int TMaxY[MAX_ROI_NUM];
+	int TMinX[MAX_ROI_CNT];
+	int TMinY[MAX_ROI_CNT];
+	int TMaxX[MAX_ROI_CNT];
+	int TMaxY[MAX_ROI_CNT];
 } RESULT_RD;
 
 typedef struct
@@ -96,6 +96,19 @@ typedef struct
 	int ty;
 	int by;
 } BASE_ROI;
+
+typedef struct
+{
+	bool isDrawDone;
+	bool isDrawFirst;
+
+	int count;
+
+	int lx;
+	int rx;
+	int ty;
+	int by;
+} EXCLUSIVE_ROI;
 
 
 class CPyroSoftMDoc : public CDocument
@@ -108,9 +121,12 @@ protected: // serialization에서만 만들어집니다.
 	HANDLE				m_hIRDX_DEVICE;		///< handle for irdx access to device
 	CString				m_DeviceString;		///< device string with no and interface (only online)
 	BOOL				m_bAcqIsRunning;	///< allways start
-											//BOOL				m_bSingleShot;		///< if only one single shot
+	BOOL				m_bDataPlay;
+
+	//int					totalIndexCount;
 
 	int					m_bStretchDIB;		///< if stretch dib
+
 
 	HANDLE				m_hIRDX_Doc;		///< general irdx handle for the document
 
@@ -134,22 +150,33 @@ protected: // serialization에서만 만들어집니다.
 	int					m_bFrameNum;
 	long int			SS_ET_OFFSET;
 
-	void CalROI(int index, int sizeX, int sizeY, float* pBuffer);
-	void CalMeasurement(int index, int sizeX, int sizeY, float* pBuffer);
-	void GetCamNBufferSize();
-	void CloseRHKData();
-	void CalRHKTotalDist();
-	void RHKStatusInf();
+	void				CalROI(int index, int sizeX, int sizeY, float* pBuffer);
+	void				CalMeasurement(int index, int sizeX, int sizeY, float* pBuffer);
+	void				GetCamNBufferSize();
+	void				CloseRHKData();
+	void				CalRHKTotalDist();
+	void				RHKStatusInf();
+	inline void			SearchTemperature(int k, float *pBuffer, int *pixelCount, int *sumTemp, bool *isArrFirst);
 
 	// 특성입니다.
 public:
+	COOI*				OOI;
+	CBROI*				BROI;
+	CTROI*				ROI;
+	CLROI*				LOI;
+	CPROI*				POI;
+	CEROI*				EROI[MAX_EROI_CNT];
+
+	HWND				m_GFV_Hwnd;
+
+		
+	// 1:IRDX, 2:Simulation, 3:Device
 	unsigned short		m_OpenMode;
 
 	//온도 데이터를 모두 읽어옴
 	float*				pFrameBuffer;
 
 	unsigned long		m_NoDS, m_IdxDS;
-	BOOL				m_bDataPlay;
 
 	// Raw Data
 	bool				m_bRawDataSave;
@@ -164,14 +191,27 @@ public:
 	CString				m_strResultDataFilePath;
 	CString				m_strResultDataFileName;
 
+	bool				m_bPreviousBtnClick;
+	int					m_max_idxDS;
 
 	int					m_PixelX, m_PixelY;
-	// Device
-	float				m_MaxTemp, m_MinTemp;
+
+
+
+
+	// - Minimum Temperature of Current Device
+	float				m_MinTemp;
+	// - Maximun Temperature of Current Device
+	float				m_MaxTemp;
 	float				m_FPS;
 	unsigned short		m_Avg;
 
-	float				m_Emissivity, m_Transmission, m_AmbTemp;
+	// - Emissivity of Current Device
+	float				m_Emissivity;
+	// - Trasmitance of Current Device
+	float				m_Transmission;
+	// - Ambient Temperature of Current Device
+	float				m_AmbTemp;
 
 	// Scale
 	unsigned short		m_nBar;
@@ -187,20 +227,29 @@ public:
 	// Detection
 	unsigned short		m_PixelSize;
 
+	unsigned short		m_camStatus;
+
 	bool				m_bShowPointer;
+	bool				m_bUpdateProperty;
 
 	bool				m_RefAreaFlag;
 	bool				m_ChartFlag;
 	bool				m_RHK_logging;
 	bool				m_RHK_log_done;
+	bool				m_ZoneInfoEnable;
 	bool				m_Auto_ET_Mode;
-	bool				m_TriggerOnOff;
-	bool				m_NearFromDev;
-	float				m_TriggerDist;
 
 	bool				m_ROI_check_flag;
 	int					m_comp_ROICount;
-	
+
+	//	설정 온도 넘었을 시 TRUE = WORNING(RED COLOR)
+	bool				m_bSpreadCondition;
+	bool				m_bCheckSpread;
+	float				m_spreadTempr;
+	float				m_spreadMaxTempr;
+	float				m_spreadDetctRange;
+	float				m_spreadlimitTempr;
+
 	CArray<POINT, POINT&> m_POIArr;
 
 	CTime				m_DateTime;
@@ -210,17 +259,19 @@ public:
 	unsigned long		BufSize;
 
 	//구조체 선언
-	RESULT_T			m_Result[N_AREA];
+	RESULT_T			m_Result[8];
 	RESULT_RD			m_ResultData;
 	BASE_ROI			m_BaseROI;
+	EXCLUSIVE_ROI		m_ExROI[5];
+	EXCLUSIVE_ROI		m_TempEXROI[5];
+	int					m_ExROICnt;
 	CArray <POINT, POINT&> PPointArr;
 
 	// Focus
-	int					m_FocusingIndex;
+	int					m_FocusPosition;
 	BOOL				m_TestROI;
 
 	//Camera
-	float				m_CamHFOV, m_CamVFOV;
 	float				m_CamIncidentAngle;
 	float				m_CamDistance;
 	
@@ -232,7 +283,6 @@ public:
 	double				m_RHKPreDistance;
 	double				m_RHKTotalDistance;
 	int					m_RHKZoneCount;
-	UINT				m_FocusLocation;
 
 	double				m_FirstCeoff;
 	double				m_SecondCeoff;
@@ -270,16 +320,25 @@ public:
 	bool				m_cursorShow;
 	bool				m_ROIShow;
 	int					m_POIShowNum;
+	int					m_OOIShowNum;
 	bool				m_maxPointerShow;
 	bool				m_minPointerShow;
+
+	bool				m_isStopMotion;
 
 	int					m_ZoomMode;
 	float				m_ZoomRatio;
 
-	int					m_baseROILXTemp[MAX_ROI_NUM];
-	int					m_baseROIRXTemp[MAX_ROI_NUM];
-	int					m_SelXPixelChart[MAX_ROI_NUM * 2];
-	int					m_SelYPixelChart[MAX_ROI_NUM * 2];
+	int					m_BROI_minSize;
+
+	int					limitOfTemperOver;		// 각 ROI의 Left X좌표값을 갖을 조건
+	int					gapOfPosition;			// 각 ROI의 이전과 현재 X값의 차이
+	int					limitOfXMaintain;		// 각 ROI의 X값이 Y축 방향으로의 유지
+
+	int					m_baseROILXTemp[MAX_ROI_CNT];
+	int					m_baseROIRXTemp[MAX_ROI_CNT];
+	int					m_SelXPixelChart[MAX_ROI_CNT * 2];
+	int					m_SelYPixelChart[MAX_ROI_CNT * 2];
 	float				m_discrim_arr[MAX_DISCRIMINANT_NUM];
 	float				m_inclin_arr[MAX_DISCRIMINANT_NUM];
 	float				m_row_projection[MAX_X_PIXEL];
@@ -291,7 +350,12 @@ public:
 	double				m_ET_Transmission[MAX_ET_PER_DISTANCE];
 	double				m_resultEmissivity[MAX_ET_PER_DISTANCE];
 
-	// Recipe Var
+	int					m_ROIBuffer[MAX_ROI_CNT];
+	int					m_ROIBufferCnt;
+	int					m_ROIBufferLimit;
+	int					m_ROICatchCnt;
+
+	// Recipe variable
 	int					m_NumOfZone;
 	int					m_RowNum;
 	int					m_ColNum;
@@ -303,15 +367,15 @@ public:
 	float				m_ZoneTemp[MAX_ZONE];
 	float				m_ZoneEmissivity[MAX_ZONE];
 
-	int					max_x[MAX_ROI_NUM];
-	int					min_x[MAX_ROI_NUM];
-	int					max_y[MAX_ROI_NUM];
-	int					min_y[MAX_ROI_NUM];
-	int					temptt[MAX_ROI_NUM];
-	int					m_ty_pxl_avg[MAX_ROI_NUM][MAX_PIXEL_AVG_NUM];
-	int					m_by_pxl_avg[MAX_ROI_NUM][MAX_PIXEL_AVG_NUM];
-	int					m_lx_pxl_avg[MAX_ROI_NUM][MAX_PIXEL_AVG_NUM];
-	int					m_rx_pxl_avg[MAX_ROI_NUM][MAX_PIXEL_AVG_NUM];
+	int					max_x[MAX_ROI_CNT];
+	int					min_x[MAX_ROI_CNT];
+	int					max_y[MAX_ROI_CNT];
+	int					min_y[MAX_ROI_CNT];
+	int					temptt[MAX_ROI_CNT];
+	int					m_ty_pxl_avg[MAX_ROI_CNT][MAX_PIXEL_AVG_NUM];
+	int					m_by_pxl_avg[MAX_ROI_CNT][MAX_PIXEL_AVG_NUM];
+	int					m_lx_pxl_avg[MAX_ROI_CNT][MAX_PIXEL_AVG_NUM];
+	int					m_rx_pxl_avg[MAX_ROI_CNT][MAX_PIXEL_AVG_NUM];
 
 	float				POI_TemperatureArray[MAX_POI_NUM];
 
@@ -334,23 +398,24 @@ public:
 	void				LoadConfig();
 	void				LoadETPerDistance();
 	void				SaveConfig();
+	void				SaveIRDXConfig();
 	void				LoadRecipeConfig();
 	bool				CreateRawDataFile(CString FileName);
 	bool				CreateResultDataFile(CString FileName);
 	bool				CreateRHKDataFile(CString FileName);
 	bool				SaveRawData(CString FileName, int sizeX, int sizeY, float* pBuffer);
-	bool				SaveResultData(CString FileName, int sizeX, int sizeY, float* pBuffer);
-	bool				SaveRHKData(CString FileName, bool flag);
-	void				SaveRowData(FILE *stream, bool flag);
+	bool				AddRHKData(CString FileName, bool flag);
+	void				WriteRHKData(FILE *stream, bool flag, CString DateTime);
 	void				OnDeviceDoStart();
 	void				OnDeviceDoStop();
 	void				InitROI();
 	void				InitRHKValues();
-	void				CalFocusLocation();
-	void				ModifyFocusLoc();
+	void				PropertyEnableUpdate(BOOL flag);
 	int					GetFindCharCount(CString parm_string, char parm_find_char);
 	void				GetEmissivityBySpline(int pointCount, double distanceArray[], double emissivityArray[]);
 	void				FSetFrequency();
+	void				IRDXUpdate();
+	void				SwitchDirection();
 
 	// 재정의입니다.
 public:
@@ -372,6 +437,7 @@ public:
 	// 구현입니다.
 public:
 	void	OnNewDataReady();
+	void	OnNewIRDXDataReady();
 
 	virtual ~CPyroSoftMDoc();
 #ifdef _DEBUG
@@ -396,15 +462,42 @@ public:
 	afx_msg void OnUpdateDeviceDoStop(CCmdUI *pCmdUI);
 	afx_msg void OnDataacquisitionShowmin();
 	afx_msg void OnUpdateDataacquisitionShowmin(CCmdUI *pCmdUI);
+
 	afx_msg void OnButtonFocusN();
-	afx_msg void OnButtonFocusNStep();
-	afx_msg void OnButtonFocusFStep();
-	afx_msg void OnButtonFocusF();
 	afx_msg void OnUpdateFocusN(CCmdUI *pCmdUI);
+	afx_msg void OnButtonFocusNStep();
 	afx_msg void OnUpdateFocusNStep(CCmdUI *pCmdUI);
+	afx_msg void OnButtonFocusFStep();
 	afx_msg void OnUpdateFocusFStep(CCmdUI *pCmdUI);
+	afx_msg void OnButtonFocusF();
 	afx_msg void OnUpdateFocusF(CCmdUI *pCmdUI);
+
+	afx_msg void OnDataplayerPreviousrecord();
+	afx_msg void OnUpdateDataplayerPreviousrecord(CCmdUI *pCmdUI);
+	afx_msg void OnDataplayerNextrecord();
+	afx_msg void OnUpdateDataplayerNextrecord(CCmdUI *pCmdUI);
+	afx_msg void OnDataplayerPlay();
+	afx_msg void OnUpdateDataplayerPlay(CCmdUI *pCmdUI);
+	afx_msg void OnDataplayerStop();
+	afx_msg void OnUpdateDataplayerStop(CCmdUI *pCmdUI);
+
+	afx_msg void OnSwitchLeftSide();
+	afx_msg void OnUpdateSwitchLeftSide(CCmdUI *pCmdUI);
+	afx_msg void OnSwitchRightSide();
+	afx_msg void OnUpdateSwitchRightSide(CCmdUI *pCmdUI);
+
+	//afx_msg void OnPOIDraw();
+	//afx_msg void OnUpdatePOIDraw(CCmdUI *pCmdUI);
+	//afx_msg void OnPOIDelete();
+	//afx_msg void OnUpdatePOIDelete(CCmdUI *pCmdUI);
+	//afx_msg void OnRoiRefMove();
+	//afx_msg void OnUpdateRoiRefMove(CCmdUI *pCmdUI);
+	afx_msg void OnButtonZoomin();
+	afx_msg void OnButtonZoomout();
+	afx_msg void OnUpdateButtonZoomin(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateButtonZoomout(CCmdUI *pCmdUI);
 };
 
+
 void CALLBACK ClientTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2);
-void CALLBACK LaserTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2);
+void CALLBACK LoggingIntervalTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2);

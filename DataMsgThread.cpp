@@ -41,8 +41,10 @@ BEGIN_MESSAGE_MAP(CDataMsgThread, CWinThread)
 	//{{AFX_MSG_MAP(CDataMsgThread)
 		// HINWEIS - Der Klassen-Assistent f?t hier Zuordnungsmakros ein und entfernt diese.
 	//}}AFX_MSG_MAP
+	//ON_THREAD_MESSAGE(WM_IRDXDataMsgThread, )
 	ON_THREAD_MESSAGE(DDAQ_WM_DATAMSG, OnDDAQDataMsg)
 	ON_THREAD_MESSAGE(WM_EndDataMsgThread, OnEndDataMsgThread)
+	//ON_THREAD_MESSAGE(WM_PropertyUpdateThread, OnPropertyUpdateThread)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -61,5 +63,9 @@ void CDataMsgThread::OnEndDataMsgThread(UINT wParam, LONG lParam)
 	ExitInstance();
 	AfxEndThread(0);
 }
-
 /////////////////////////////////////////////////////////////////////////////
+
+//void CDataMsgThread::OnPropertyUpdateThread(UINT wParam, LONG lParam)
+//{
+//	::PostMessage(AfxGetMainWnd()->m_hWnd, DDAQ_WM_DATAMSG, wParam, lParam);
+//}

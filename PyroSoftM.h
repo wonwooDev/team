@@ -86,6 +86,11 @@ public:
 	virtual void SaveCustomState();
 
 	afx_msg void OnAppAbout();
+	afx_msg void OnDeviceDoOpensimulation();
+	afx_msg void OnDeviceDoOpen();
+	afx_msg void OnFileOpen();
+	afx_msg void OnDeviceDoScan();
+
 	DECLARE_MESSAGE_MAP()
 
 	// New Add ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,9 +102,10 @@ protected:
 
 	TMessagingType		m_MessagingType;					///< type of messaging for new data ready
 
+	CDataMsgThread*		m_pDataMsgThread;					///< if messaging with thread
+
 	EnumUseMode			m_iUseMode;
 
-	CDataMsgThread*		m_pDataMsgThread;					///< if messaging with thread
 
 	BOOL				m_bOpenViaBuffer;					///< active during open via buffer
 
@@ -109,12 +115,13 @@ protected:
 	CString				m_strCLSID;
 
 	////////////////////////////////////////////////////////////
-
+	
 	CString				m_strSingleValue;
 
 public:
+	CPyroSoftMDoc * pDocTemp;
 
-	BOOL				m_bHiColorIcons;
+	UINT				m_TimerID;
 
 	//				DDAQ_DEVICE functions
 	bool			DDAQ_DEVICE_DO_Open(unsigned long nDevNo, const char* pFileName);
@@ -251,15 +258,12 @@ public:
 	bool			DDAQ_IRDX_ACQUISITION_GetMotorFocusPos(HANDLE hIRDX, unsigned short* pPos, unsigned short* pState);
 	bool			DDAQ_IRDX_ACQUISITION_SetMotorFocusPos(HANDLE hIRDX, unsigned short	Pos);
 	bool			DDAQ_DEVICE_GET_MOTOR_FocusVersion(unsigned long nDAQDevNo, unsigned long* pVersion);
-	bool			DAQ_LASER_DISTANCE_DAQmxStartTask(TaskHandle THandle);
-	bool			DAQ_LASER_DISTANCE_DAQmxClearTask(TaskHandle THandle);
-	bool			DAQ_LASER_DAQmxReadAnalogScalarF64(TaskHandle THandle, float64 timeout, float64 *value, bool32 *reserved);
 
-
-public:
 	void				DoErrorMessage(UINT IDS, unsigned long nErrorCode, BOOL with_box = TRUE);
 
-	CPyroSoftMDoc*		GetDocumentFromDevice(unsigned short DevNo);
+	void				Devicedetection();
+
+	void				IRDXUpdateThread();
 
 	TMessagingType		GetMessagingType();
 
@@ -268,11 +272,17 @@ public:
 	BOOL				GetbOpenViaBuffer() { return m_bOpenViaBuffer; }
 
 	void				EndDataMsgThread();
+	//void				PropertyUpdateMsgThread();
 	double				roundXL(double x, int digit);
+
+public:
+	CPyroSoftMDoc*		GetDocumentFromDevice(unsigned short DevNo);
 
 	CString				m_strImpExpFileName;  // Name of the file used to export or import data.
 	UINT				m_uReadPeriod;      // Read Period
 	EnumReadMode		m_uReadMode;          // Read Mode
+
+	BOOL				m_bHiColorIcons;
 
 	// Window Pointers
 	CScaleDlg*			m_pScaleDlg;
@@ -281,14 +291,10 @@ public:
 	CResultDlg*			m_pResultDlg;
 	CDataSocket*		m_pDataSocket;
 
-	float64				m_Laser_Distance;
+	//float64				m_Laser_Distance;
 	double				m_Laser_mA;
 
-	TaskHandle			DAQ_TaskHandle;
-
-	afx_msg void OnDeviceDoOpensimulation();
-	afx_msg void OnDeviceDoOpen();
-	afx_msg void OnFileOpen();
+	//TaskHandle			DAQ_TaskHandle;
 
 	char				AppPath[_MAX_PATH];
 	unsigned short		IRDX_Mode;
@@ -303,12 +309,12 @@ public:
 	unsigned long		m_ForcedFocusFlg;
 
 	BOOL				m_bLoggingRunning;
+	BOOL				m_bIRDXLoggingRunning;
 
-	//ClientTimerID
+	//TimerID
 	UINT				m_ClientTimerID;
-	UINT				m_RefreshTimerID;
-	UINT				m_LaserTimerID;
-
+	UINT				m_loggingIntervalTimerID;
+	
 	unsigned long		TimerEventID;
 
 	bool				m_isSamsung_dev;
@@ -320,20 +326,17 @@ public:
 	int					m_childFrmWidth;
 	int					m_childFrmHeight;
 
-	//CSplitterWnd		m_wndSplitter;		mody 05-16
-	//CSplitterWnd		m_GFVSplitter;		mody 05-16
-	//CSplitterWnd		m_ScaleSplitter;	mody 05-16
-
-	void				Devicedetection();
-	void				ConnectionLaserDist();
-
+	int					m_loggingInterval;
+	int					m_acqFreq;
+	
 	BOOL				m_bFileOpen;
 	bool				m_bCameraConnected;
 
-	CListBox	m_ctlListValues;
+	CListBox		m_ctlListValues;
 	DWORD			m_dwTransactionID; // Client transaction ID
-	afx_msg void OnDeviceDoScan();
+	CString			m_systemDate;
+	CString			m_systemTime;
+
 };
 
 extern CPyroSoftMApp theApp;
-

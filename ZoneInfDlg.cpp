@@ -134,6 +134,108 @@ BEGIN_MESSAGE_MAP(CZoneInfDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_LOAD_RECIPE1, &CZoneInfDlg::OnBnClickedLoadRecipe)
 	ON_BN_CLICKED(IDC_SAVE_ZONE, &CZoneInfDlg::OnBnClickedSaveZone)
 	ON_BN_CLICKED(IDC_CLOSE_ZONE, &CZoneInfDlg::OnBnClickedCloseZone)
+
+	ON_EN_UPDATE(IDC_ZONE1_DISTANCE, &CZoneInfDlg::OnEnUpdateZone1Distance)
+	ON_EN_UPDATE(IDC_ZONE2_DISTANCE, &CZoneInfDlg::OnEnUpdateZone2Distance)
+	ON_EN_UPDATE(IDC_ZONE3_DISTANCE, &CZoneInfDlg::OnEnUpdateZone3Distance)
+	ON_EN_UPDATE(IDC_ZONE4_DISTANCE, &CZoneInfDlg::OnEnUpdateZone4Distance)
+	ON_EN_UPDATE(IDC_ZONE5_DISTANCE, &CZoneInfDlg::OnEnUpdateZone5Distance)
+	ON_EN_UPDATE(IDC_ZONE6_DISTANCE, &CZoneInfDlg::OnEnUpdateZone6Distance)
+	ON_EN_UPDATE(IDC_ZONE7_DISTANCE, &CZoneInfDlg::OnEnUpdateZone7Distance)
+	ON_EN_UPDATE(IDC_ZONE8_DISTANCE, &CZoneInfDlg::OnEnUpdateZone8Distance)
+	ON_EN_UPDATE(IDC_ZONE9_DISTANCE, &CZoneInfDlg::OnEnUpdateZone9Distance)
+	ON_EN_UPDATE(IDC_ZONE10_DISTANCE, &CZoneInfDlg::OnEnUpdateZone10Distance)
+	ON_EN_UPDATE(IDC_ZONE11_DISTANCE, &CZoneInfDlg::OnEnUpdateZone11Distance)
+	ON_EN_UPDATE(IDC_ZONE12_DISTANCE, &CZoneInfDlg::OnEnUpdateZone12Distance)
+	ON_EN_UPDATE(IDC_ZONE13_DISTANCE, &CZoneInfDlg::OnEnUpdateZone13Distance)
+	ON_EN_UPDATE(IDC_ZONE14_DISTANCE, &CZoneInfDlg::OnEnUpdateZone14Distance)
+	ON_EN_UPDATE(IDC_ZONE15_DISTANCE, &CZoneInfDlg::OnEnUpdateZone15Distance)
+	ON_EN_UPDATE(IDC_ZONE16_DISTANCE, &CZoneInfDlg::OnEnUpdateZone16Distance)
+	ON_EN_UPDATE(IDC_ZONE17_DISTANCE, &CZoneInfDlg::OnEnUpdateZone17Distance)
+	ON_EN_UPDATE(IDC_ZONE18_DISTANCE, &CZoneInfDlg::OnEnUpdateZone18Distance)
+	ON_EN_UPDATE(IDC_ZONE19_DISTANCE, &CZoneInfDlg::OnEnUpdateZone19Distance)
+	ON_EN_UPDATE(IDC_ZONE20_DISTANCE, &CZoneInfDlg::OnEnUpdateZone20Distance)
+	ON_EN_UPDATE(IDC_ZONE21_DISTANCE, &CZoneInfDlg::OnEnUpdateZone21Distance)
+	ON_EN_UPDATE(IDC_ZONE22_DISTANCE, &CZoneInfDlg::OnEnUpdateZone22Distance)
+	ON_EN_UPDATE(IDC_ZONE23_DISTANCE, &CZoneInfDlg::OnEnUpdateZone23Distance)
+	ON_EN_UPDATE(IDC_ZONE24_DISTANCE, &CZoneInfDlg::OnEnUpdateZone24Distance)
+	ON_EN_UPDATE(IDC_ZONE25_DISTANCE, &CZoneInfDlg::OnEnUpdateZone25Distance)
+	ON_EN_UPDATE(IDC_ZONE26_DISTANCE, &CZoneInfDlg::OnEnUpdateZone26Distance)
+	ON_EN_UPDATE(IDC_ZONE27_DISTANCE, &CZoneInfDlg::OnEnUpdateZone27Distance)
+	ON_EN_UPDATE(IDC_ZONE28_DISTANCE, &CZoneInfDlg::OnEnUpdateZone28Distance)
+	ON_EN_UPDATE(IDC_ZONE29_DISTANCE, &CZoneInfDlg::OnEnUpdateZone29Distance)
+	ON_EN_UPDATE(IDC_ZONE30_DISTANCE, &CZoneInfDlg::OnEnUpdateZone30Distance)
+	ON_EN_UPDATE(IDC_ZONE31_DISTANCE, &CZoneInfDlg::OnEnUpdateZone31Distance)
+	ON_EN_UPDATE(IDC_ZONE32_DISTANCE, &CZoneInfDlg::OnEnUpdateZone32Distance)
+
+	ON_EN_UPDATE(IDC_ZONE1_SPEED, &CZoneInfDlg::OnEnUpdateZone1Speed)
+	ON_EN_UPDATE(IDC_ZONE2_SPEED, &CZoneInfDlg::OnEnUpdateZone2Speed)
+	ON_EN_UPDATE(IDC_ZONE3_SPEED, &CZoneInfDlg::OnEnUpdateZone3Speed)
+	ON_EN_UPDATE(IDC_ZONE4_SPEED, &CZoneInfDlg::OnEnUpdateZone4Speed)
+	ON_EN_UPDATE(IDC_ZONE5_SPEED, &CZoneInfDlg::OnEnUpdateZone5Speed)
+	ON_EN_UPDATE(IDC_ZONE6_SPEED, &CZoneInfDlg::OnEnUpdateZone6Speed)
+	ON_EN_UPDATE(IDC_ZONE7_SPEED, &CZoneInfDlg::OnEnUpdateZone7Speed)
+	ON_EN_UPDATE(IDC_ZONE8_SPEED, &CZoneInfDlg::OnEnUpdateZone8Speed)
+	ON_EN_UPDATE(IDC_ZONE9_SPEED, &CZoneInfDlg::OnEnUpdateZone9Speed)
+	ON_EN_UPDATE(IDC_ZONE10_SPEED, &CZoneInfDlg::OnEnUpdateZone10Speed)
+	ON_EN_UPDATE(IDC_ZONE11_SPEED, &CZoneInfDlg::OnEnUpdateZone11Speed)
+	ON_EN_UPDATE(IDC_ZONE12_SPEED, &CZoneInfDlg::OnEnUpdateZone12Speed)
+	ON_EN_UPDATE(IDC_ZONE13_SPEED, &CZoneInfDlg::OnEnUpdateZone13Speed)
+	ON_EN_UPDATE(IDC_ZONE14_SPEED, &CZoneInfDlg::OnEnUpdateZone14Speed)
+	ON_EN_UPDATE(IDC_ZONE15_SPEED, &CZoneInfDlg::OnEnUpdateZone15Speed)
+	ON_EN_UPDATE(IDC_ZONE16_SPEED, &CZoneInfDlg::OnEnUpdateZone16Speed)
+	ON_EN_UPDATE(IDC_ZONE17_SPEED, &CZoneInfDlg::OnEnUpdateZone17Speed)
+	ON_EN_UPDATE(IDC_ZONE18_SPEED, &CZoneInfDlg::OnEnUpdateZone18Speed)
+	ON_EN_UPDATE(IDC_ZONE19_SPEED, &CZoneInfDlg::OnEnUpdateZone19Speed)
+	ON_EN_UPDATE(IDC_ZONE20_SPEED, &CZoneInfDlg::OnEnUpdateZone20Speed)
+	ON_EN_UPDATE(IDC_ZONE21_SPEED, &CZoneInfDlg::OnEnUpdateZone21Speed)
+	ON_EN_UPDATE(IDC_ZONE22_SPEED, &CZoneInfDlg::OnEnUpdateZone22Speed)
+	ON_EN_UPDATE(IDC_ZONE23_SPEED, &CZoneInfDlg::OnEnUpdateZone23Speed)
+	ON_EN_UPDATE(IDC_ZONE24_SPEED, &CZoneInfDlg::OnEnUpdateZone24Speed)
+	ON_EN_UPDATE(IDC_ZONE25_SPEED, &CZoneInfDlg::OnEnUpdateZone25Speed)
+	ON_EN_UPDATE(IDC_ZONE26_SPEED, &CZoneInfDlg::OnEnUpdateZone26Speed)
+	ON_EN_UPDATE(IDC_ZONE27_SPEED, &CZoneInfDlg::OnEnUpdateZone27Speed)
+	ON_EN_UPDATE(IDC_ZONE28_SPEED, &CZoneInfDlg::OnEnUpdateZone28Speed)
+	ON_EN_UPDATE(IDC_ZONE29_SPEED, &CZoneInfDlg::OnEnUpdateZone29Speed)
+	ON_EN_UPDATE(IDC_ZONE30_SPEED, &CZoneInfDlg::OnEnUpdateZone30Speed)
+	ON_EN_UPDATE(IDC_ZONE31_SPEED, &CZoneInfDlg::OnEnUpdateZone31Speed)
+	ON_EN_UPDATE(IDC_ZONE32_SPEED, &CZoneInfDlg::OnEnUpdateZone32Speed)
+
+	ON_EN_UPDATE(IDC_ZONE1_TEMP, &CZoneInfDlg::OnEnUpdateZone1Temp)
+	ON_EN_UPDATE(IDC_ZONE2_TEMP, &CZoneInfDlg::OnEnUpdateZone2Temp)
+	ON_EN_UPDATE(IDC_ZONE3_TEMP, &CZoneInfDlg::OnEnUpdateZone3Temp)
+	ON_EN_UPDATE(IDC_ZONE4_TEMP, &CZoneInfDlg::OnEnUpdateZone4Temp)
+	ON_EN_UPDATE(IDC_ZONE5_TEMP, &CZoneInfDlg::OnEnUpdateZone5Temp)
+	ON_EN_UPDATE(IDC_ZONE6_TEMP, &CZoneInfDlg::OnEnUpdateZone6Temp)
+	ON_EN_UPDATE(IDC_ZONE7_TEMP, &CZoneInfDlg::OnEnUpdateZone7Temp)
+	ON_EN_UPDATE(IDC_ZONE8_TEMP, &CZoneInfDlg::OnEnUpdateZone8Temp)
+	ON_EN_UPDATE(IDC_ZONE9_TEMP, &CZoneInfDlg::OnEnUpdateZone9Temp)
+	ON_EN_UPDATE(IDC_ZONE10_TEMP, &CZoneInfDlg::OnEnUpdateZone10Temp)
+	ON_EN_UPDATE(IDC_ZONE11_TEMP, &CZoneInfDlg::OnEnUpdateZone11Temp)
+	ON_EN_UPDATE(IDC_ZONE12_TEMP, &CZoneInfDlg::OnEnUpdateZone12Temp)
+	ON_EN_UPDATE(IDC_ZONE13_TEMP, &CZoneInfDlg::OnEnUpdateZone13Temp)
+	ON_EN_UPDATE(IDC_ZONE14_TEMP, &CZoneInfDlg::OnEnUpdateZone14Temp)
+	ON_EN_UPDATE(IDC_ZONE15_TEMP, &CZoneInfDlg::OnEnUpdateZone15Temp)
+	ON_EN_UPDATE(IDC_ZONE16_TEMP, &CZoneInfDlg::OnEnUpdateZone16Temp)
+	ON_EN_UPDATE(IDC_ZONE17_TEMP, &CZoneInfDlg::OnEnUpdateZone17Temp)
+	ON_EN_UPDATE(IDC_ZONE18_TEMP, &CZoneInfDlg::OnEnUpdateZone18Temp)
+	ON_EN_UPDATE(IDC_ZONE19_TEMP, &CZoneInfDlg::OnEnUpdateZone19Temp)
+	ON_EN_UPDATE(IDC_ZONE20_TEMP, &CZoneInfDlg::OnEnUpdateZone20Temp)
+	ON_EN_UPDATE(IDC_ZONE21_TEMP, &CZoneInfDlg::OnEnUpdateZone21Temp)
+	ON_EN_UPDATE(IDC_ZONE22_TEMP, &CZoneInfDlg::OnEnUpdateZone22Temp)
+	ON_EN_UPDATE(IDC_ZONE23_TEMP, &CZoneInfDlg::OnEnUpdateZone23Temp)
+	ON_EN_UPDATE(IDC_ZONE24_TEMP, &CZoneInfDlg::OnEnUpdateZone24Temp)
+	ON_EN_UPDATE(IDC_ZONE25_TEMP, &CZoneInfDlg::OnEnUpdateZone25Temp)
+	ON_EN_UPDATE(IDC_ZONE26_TEMP, &CZoneInfDlg::OnEnUpdateZone26Temp)
+	ON_EN_UPDATE(IDC_ZONE27_TEMP, &CZoneInfDlg::OnEnUpdateZone27Temp)
+	ON_EN_UPDATE(IDC_ZONE28_TEMP, &CZoneInfDlg::OnEnUpdateZone28Temp)
+	ON_EN_UPDATE(IDC_ZONE29_TEMP, &CZoneInfDlg::OnEnUpdateZone29Temp)
+	ON_EN_UPDATE(IDC_ZONE30_TEMP, &CZoneInfDlg::OnEnUpdateZone30Temp)
+	ON_EN_UPDATE(IDC_ZONE31_TEMP, &CZoneInfDlg::OnEnUpdateZone31Temp)
+	ON_EN_UPDATE(IDC_ZONE32_TEMP, &CZoneInfDlg::OnEnUpdateZone32Temp)
+
+	ON_EN_UPDATE(IDC_START_POS, &CZoneInfDlg::OnEnUpdateStartPos)
+	ON_EN_UPDATE(IDC_END_POS, &CZoneInfDlg::OnEnUpdateEndPos)
 END_MESSAGE_MAP()
 
 
@@ -246,6 +348,13 @@ void CZoneInfDlg::OnBnClickedApplyZone()
 		AfxMessageBox("존재하지 않는 값이 존재합니다.");	// -승태임무
 		return;
 	}
+	else
+	{
+		m_bIsValuesChanged = false;
+
+		GetDlgItem(IDC_APPLY_ZONE)->EnableWindow(false);
+	}
+		
 }
 
 void CZoneInfDlg::CheckEmptyValue(CString str)
@@ -445,6 +554,15 @@ void CZoneInfDlg::OnBnClickedSaveZone()
 void CZoneInfDlg::OnBnClickedCloseZone()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+
+	if (m_bIsValuesChanged)
+	{
+		if (MessageBox(_T("변경된 데이터가 있습니다. 적용 하시겠습니까?"), _T("Information"), MB_ICONQUESTION | MB_YESNO) == IDYES)
+		{
+			OnBnClickedApplyZone();
+		}	
+	}
+
 	::SendMessage(this->m_hWnd, WM_CLOSE, NULL, NULL);
 }
 
@@ -455,8 +573,134 @@ BOOL CZoneInfDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
+	m_bIsValuesChanged = false;
+	m_updateCount = 0;
+
 	PrintZoneInf();
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }
+
+
+void CZoneInfDlg::OnEnUpdateZone1Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone2Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone3Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone4Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone5Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone6Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone7Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone8Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone9Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone10Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone11Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone12Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone13Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone14Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone15Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone16Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone17Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone18Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone19Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone20Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone21Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone22Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone23Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone24Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone25Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone26Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone27Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone28Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone29Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone30Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone31Distance(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone32Distance(){CheckForUpdate();}
+
+void CZoneInfDlg::OnEnUpdateZone1Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone2Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone3Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone4Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone5Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone6Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone7Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone8Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone9Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone10Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone11Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone12Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone13Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone14Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone15Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone16Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone17Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone18Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone19Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone20Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone21Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone22Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone23Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone24Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone25Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone26Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone27Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone28Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone29Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone30Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone31Speed(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone32Speed(){CheckForUpdate();}
+
+void CZoneInfDlg::OnEnUpdateZone1Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone2Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone3Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone4Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone5Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone6Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone7Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone8Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone9Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone10Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone11Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone12Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone13Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone14Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone15Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone16Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone17Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone18Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone19Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone20Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone21Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone22Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone23Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone24Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone25Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone26Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone27Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone28Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone29Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone30Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone31Temp(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateZone32Temp(){CheckForUpdate();}
+
+void CZoneInfDlg::OnEnUpdateStartPos(){CheckForUpdate();}
+void CZoneInfDlg::OnEnUpdateEndPos(){CheckForUpdate();}
+
+
+void CZoneInfDlg::CheckForUpdate()
+{
+	if (m_updateCount < 98)
+		m_updateCount++;
+	else
+	{
+		m_bIsValuesChanged = true;			// 32 * 3 + 2개의 updateCount가 만족 할 시
+
+		GetDlgItem(IDC_APPLY_ZONE)->EnableWindow(true);
+	}
+		
+}
+
+
+
+
+
+

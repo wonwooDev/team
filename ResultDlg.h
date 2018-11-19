@@ -32,12 +32,12 @@ public:
 	CWnd*			m_pWndShow;
 
 	CMaxTabDlg		m_MaxTabDlg;
-	CMinTapDlg		m_MinTabDlg;
-	CAvgTabDlg		m_AvgTabDlg;
+	CMinTapDlg		m_SpreadTabDlg;
+	///CAvgTabDlg		m_AvgTabDlg;
 
 protected:
 	template <typename T>
-	T CResultDlg::ModifiedVal(T object, T a, T b);
+	T ModifiedVal(T object, T a, T b);
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 	void ChangeProperties(CPyroSoftMDoc* pDoc);
@@ -49,17 +49,15 @@ protected:
 public:
 	CPyroSoftMDoc* pDoc;	
 
-
-
 	// font 조정
 	bool	m_font_mdf;
 
-	// 최소 온도 값
-	CEdit m_MinTemp;
 	// 최대 온도 값
 	CEdit m_MaxTemp;
+	// 최소 온도 값
+	CEdit m_SpreadTemp;
 	// 평균 온도 값
-	CEdit m_AvgTemp;
+	///CEdit m_AvgTemp;
 
 	unsigned short		m_bmp_isize_x;	// internal size
 	unsigned short		m_bmp_isize_y;
@@ -71,9 +69,9 @@ public:
 	CStatic m_Static_RDLA;
 	CStatic m_Static_RDLNRate;
 
-	CEdit m_ROI_Min;
 	CEdit m_ROI_Max;
-	CEdit m_ROI_Avg;
+	CEdit m_ROI_Spread;
+	///CEdit m_ROI_Avg;
 
 	CTabCtrl m_Result_Tap;
 
@@ -91,4 +89,6 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	CButton m_StepDiff_btn;
 	afx_msg void OnBnClickedStepdifferenceBtn();
+	afx_msg void OnBnClickedClearGraph();
+	CButton m_ClearGraph_btn;
 };

@@ -14,6 +14,8 @@
 #define new DEBUG_NEW
 #endif
 
+#define WHITE_COLOR		-1
+
 // CResultDlg 대화 상자입니다.
 
 IMPLEMENT_DYNAMIC(CResultDlg, CDialogEx)
@@ -38,6 +40,7 @@ void CResultDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_ZONE_BTN, m_ZoneInf_btn);
 	DDX_Control(pDX, IDC_COEFFICIENT_BTN, m_Coefficient_btn);
 	DDX_Control(pDX, IDC_STEPDIFFERENCE_BTN, m_StepDiff_btn);
+	DDX_Control(pDX, IDC_CLEAR_GRAPH, m_ClearGraph_btn);
 }
 
 BEGIN_MESSAGE_MAP(CResultDlg, CDialogEx)
@@ -49,10 +52,9 @@ BEGIN_MESSAGE_MAP(CResultDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_COEFFICIENT_BTN, &CResultDlg::OnBnClickedCoefficientBtn)
 	ON_WM_SIZE()
 	ON_BN_CLICKED(IDC_STEPDIFFERENCE_BTN, &CResultDlg::OnBnClickedStepdifferenceBtn)
+	ON_BN_CLICKED(IDC_CLEAR_GRAPH, &CResultDlg::OnBnClickedClearGraph)
 END_MESSAGE_MAP()
 // CResultDlg 메시지 처리기입니다.
-
-
 
 HBRUSH CResultDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
@@ -65,19 +67,18 @@ HBRUSH CResultDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return hbr;
 }
 
-
 BOOL CResultDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
 	// [Tab Init]
 	CString tabOne = "Max";
-	CString	tabTwo = "Min";
-	CString tabThree = "Avg";
+	CString	tabTwo = "Spread";
+	//CString tabThree = "Avg";
 
 	m_Result_Tap.InsertItem(1, tabOne);
 	m_Result_Tap.InsertItem(2, tabTwo);
-	m_Result_Tap.InsertItem(3, tabThree);
+	//m_Result_Tap.InsertItem(3, tabThree);
 
 	CRect rect;
 	m_Result_Tap.GetClientRect(&rect);
@@ -90,20 +91,21 @@ BOOL CResultDlg::OnInitDialog()
 
 		m_MaxTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height() - 33, SWP_SHOWWINDOW | SWP_NOZORDER);
 	}
-	if (m_MinTabDlg.GetSafeHwnd() == 0)
+	///if (m_MinTabDlg.GetSafeHwnd() == 0)
+	if(m_SpreadTabDlg.GetSafeHwnd() == 0)
 	{
-		if (!m_MinTabDlg.Create(IDD_MIN_TAB_DIALOG, &m_Result_Tap))
+		if (!m_SpreadTabDlg.Create(IDD_MIN_TAB_DIALOG, &m_Result_Tap))
 			return FALSE;
 
-		m_MinTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height() - 33, SWP_NOZORDER);
+		m_SpreadTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height() - 33, SWP_NOZORDER);
 	}
-	if (m_AvgTabDlg.GetSafeHwnd() == 0)
+	/*if (m_AvgTabDlg.GetSafeHwnd() == 0)
 	{
 		if (!m_AvgTabDlg.Create(IDD_AVG_TAB_DIALOG, &m_Result_Tap))
 			return FALSE;
 
 		m_AvgTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height() - 33, SWP_NOZORDER);
-	}
+	}*/
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
@@ -158,27 +160,22 @@ void CResultDlg::CheckROICount(int ROI_count, int cROI_count)
 			m_MaxTabDlg.m_Max_Chart.Series(i).SetTitle(str);
 			m_MaxTabDlg.m_Max_Chart.Series(i).SetLegendTitle(str);
 			m_MaxTabDlg.m_Max_Chart.Series(i).SetColor(ColorRef(i));
-			m_MinTabDlg.m_Min_Chart.AddSeries(0);
-			m_MinTabDlg.m_Min_Chart.Series(i).SetTitle(str);
-			m_MinTabDlg.m_Min_Chart.Series(i).SetLegendTitle(str);
-			m_MinTabDlg.m_Min_Chart.Series(i).SetColor(ColorRef(i));
-			m_AvgTabDlg.m_Avg_Chart.AddSeries(0);
-			m_AvgTabDlg.m_Avg_Chart.Series(i).SetTitle(str);
-			m_AvgTabDlg.m_Avg_Chart.Series(i).SetLegendTitle(str);
-			m_AvgTabDlg.m_Avg_Chart.Series(i).SetColor(ColorRef(i));
 		}
+		m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
+		m_SpreadTabDlg.m_Spread_Chart.Series(0).SetColor(ColorRef(WHITE_COLOR));
 	}
+
 	else if (ROI_count > cROI_count)
 	{
 		for (int i = ROI_count - 1; i >= cROI_count; i--)
 		{
 			m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
-			m_MinTabDlg.m_Min_Chart.Series(i).Clear();
-			m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
+			//m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
 			m_MaxTabDlg.m_Max_Chart.RemoveSeries(i);
-			m_MinTabDlg.m_Min_Chart.RemoveSeries(i);
-			m_AvgTabDlg.m_Avg_Chart.RemoveSeries(i);
+			//m_AvgTabDlg.m_Avg_Chart.RemoveSeries(i);
 		}
+		m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
+		m_SpreadTabDlg.m_Spread_Chart.RemoveSeries(0);
 	}
 }
 
@@ -255,7 +252,6 @@ int CResultDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-
 void CResultDlg::OnBnClickedZoneBtn()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
@@ -266,7 +262,6 @@ void CResultDlg::OnBnClickedZoneBtn()
 
 	m_Refdlg.DoModal();
 }
-
 
 void CResultDlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -285,13 +280,13 @@ void CResultDlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
 		m_pWndShow = &m_MaxTabDlg;
 		break;
 	case 1:
-		m_MinTabDlg.ShowWindow(SW_SHOW);
-		m_pWndShow = &m_MinTabDlg;
+		m_SpreadTabDlg.ShowWindow(SW_SHOW);
+		m_pWndShow = &m_SpreadTabDlg;
 		break;
-	case 2:
-		m_AvgTabDlg.ShowWindow(SW_SHOW);
-		m_pWndShow = &m_AvgTabDlg;
-		break;
+	//case 2:
+	//	m_AvgTabDlg.ShowWindow(SW_SHOW);
+	//	m_pWndShow = &m_AvgTabDlg;
+	//	break;
 	}
 	*pResult = 0;
 }
@@ -309,12 +304,17 @@ void CResultDlg::OnSize(UINT nType, int cx, int cy)
 
 	m_Result_Tap.SetWindowPos(NULL, 0, 0, rect.Width(), rect.Height()*0.93, SWP_NOZORDER);
 	m_MaxTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height()*0.9 - 10, SWP_NOZORDER);
-	m_MinTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height()*0.9 - 10, SWP_NOZORDER);
-	m_AvgTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height()*0.9 - 10, SWP_NOZORDER);
+	m_SpreadTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height()*0.9 - 10, SWP_NOZORDER);
+	//m_AvgTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height()*0.9 - 10, SWP_NOZORDER);
+
+	//m_SpreadTabDlg.spread_static.SetWindowPos(NULL, rect.Width()*0.1, rect.Height()*0.85-20, rect.Width()*0.2, 15, SWP_NOZORDER);
+	//m_SpreadTabDlg.spread_edit.SetWindowPos(NULL, rect.Width()*0.1, rect.Height()*0.85 , rect.Width()*0.8, 20, SWP_NOZORDER);
+	m_SpreadTabDlg.spread_static.SetWindowPos(NULL, rect.Width()*0.1, rect.Height()*0.85 - 20, rect.Width()*0.6, 15, SWP_NOZORDER);
+	m_SpreadTabDlg.spread_edit.SetWindowPos(NULL, rect.Width()*0.35, rect.Height()*0.81, rect.Width()*0.6, 40, SWP_NOZORDER);
 
 	m_ZoneInf_btn.SetWindowPos(NULL, 5, rect.Height() - 35 - 10, 100, 35, SWP_NOZORDER);
-	m_Coefficient_btn.SetWindowPos(NULL, 110, rect.Height() - 35 - 10, 100, 35, SWP_NOZORDER);
-	m_StepDiff_btn.SetWindowPos(NULL, 215, rect.Height() - 35 - 10, 100, 35, SWP_NOZORDER);
+	m_StepDiff_btn.SetWindowPos(NULL, 110, rect.Height() - 35 - 10, 100, 35, SWP_NOZORDER);
+	m_ClearGraph_btn.SetWindowPos(NULL, 215, rect.Height() - 35 - 10, 100, 35, SWP_NOZORDER);
 }
 
 void CResultDlg::OnBnClickedCoefficientBtn()
@@ -334,4 +334,19 @@ void CResultDlg::OnBnClickedStepdifferenceBtn()
 
 	m_StepDiffDlg.DoModal();
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+void CResultDlg::OnBnClickedClearGraph()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	for (int i = 0; i < pDoc->m_ROICount; i++)
+	{
+		m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
+		//m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
+	}
+	m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
+
+	pDoc->m_bSpreadCondition = true;
+	pDoc->m_ChartFlag = false;
+	pDoc->m_max_idxDS = 0;
 }

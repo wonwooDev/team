@@ -49,6 +49,7 @@ public:
 	CMFCPropertyGridProperty* pDataAcq_Time;
 	CMFCPropertyGridProperty* pDataAcq_MeasRange;
 	CMFCPropertyGridProperty* pDataAcq_AcqFreq;
+	CMFCPropertyGridProperty* pDataAcq_LoggingInterval;
 	CCheckBoxPropertyGridProperty* pDataTriggerFlag;
 	CCheckBoxPropertyGridProperty* pDataAcq_Trigger;
 	CMFCPropertyGridProperty* pDataAcq_TriggerDist;
@@ -73,9 +74,10 @@ public:
 	CMFCPropertyGridProperty* pRawDataSaveFileName;
 
 	CMFCPropertyGridProperty* pFocus;
-	CMFCPropertyGridProperty* pFocusLocation;
-	CMFCPropertyGridProperty* pMeasure;
+	CMFCPropertyGridProperty* pFocusPosition;
+	///CMFCPropertyGridProperty* pFocusSetPosition;
 
+	CMFCPropertyGridProperty* pMeasure;
 	CFLoatPropertyGridProperty* pMeasureHFOV;
 	CFLoatPropertyGridProperty* pMeasureVFOV;
 	CFLoatPropertyGridProperty* pMeasureIncidentAngle;
@@ -84,7 +86,11 @@ public:
 	CMFCPropertyGridProperty* pMeasureData;
 	CFLoatPropertyGridProperty* pMeasureDataThreshold;
 	CMFCPropertyGridProperty* pMeasureDataROICount;
+	CMFCPropertyGridProperty* pMeasureDataBaseROISize;
+	CMFCPropertyGridProperty* pMeasureROIBuffer;
+	CMFCPropertyGridProperty* pMeasureROIBufferCnt;
 	CMFCPropertyGridProperty* pMeasureDataFontSize;
+	CCheckBoxPropertyGridProperty* pMeasureDataZoneInfoEnable;
 	CCheckBoxPropertyGridProperty* pMeasureDataAutoETMode;
 
 	CMFCPropertyGridProperty* pScreen;
@@ -92,8 +98,14 @@ public:
 	CCheckBoxPropertyGridProperty* pScreenCursor;
 	CCheckBoxPropertyGridProperty* pScreenROI;
 	CMFCPropertyGridProperty* pScreenPOI;
+	CMFCPropertyGridProperty* pScreenBROI;
 	CCheckBoxPropertyGridProperty* pScreenMaxPointer;
 	CCheckBoxPropertyGridProperty* pScreenMinPointer;
+
+	CMFCPropertyGridProperty* pSpread;
+	CFLoatPropertyGridProperty* pSpreadDetectRange;
+	CFLoatPropertyGridProperty* pSpreadLimitTempr;
+
 
 	CMFCPropertyGridProperty* pResult;
 	CMFCPropertyGridProperty* pResultValue;
@@ -115,6 +127,7 @@ public:
 
 protected:
 	CString NameOfPOI[4];
+	CString NameofOOI[4];
 	//CString ZoomMode[7];
 
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -130,10 +143,13 @@ public:
 	void InitPropList();	
 	void ChangeProperties(CPyroSoftMDoc* pDoc);
 	void UpdateDataSet();
+	void InitFreqeuncy(CPyroSoftMDoc *pDoc, unsigned short avg);
 
 	int IndexOfColorBar(CString s);
 	int IndexOfNoColor(CString s);
 	unsigned short valueOfAverage(CString str, float FPS);
+	int valudeOfFrequency(unsigned short avg);
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	void OnChangedZoomOnly();
 };
 

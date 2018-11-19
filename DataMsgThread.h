@@ -12,6 +12,8 @@
 extern CPyroSoftMApp	theApp;
 
 #define WM_EndDataMsgThread	WM_USER + 100
+#define WM_IRDXDataMsgThread WM_USER + 150
+#define WM_PropertyUpdateThread WM_USER + 200
 
 /////////////////////////////////////////////////////////////////////////////
 // Thread CDataMsgThread 
@@ -46,6 +48,7 @@ protected:
 	//}}AFX_MSG
 	afx_msg void OnDDAQDataMsg(UINT wParam, LONG lParam);
 	afx_msg void OnEndDataMsgThread(UINT wParam, LONG lParam);
+	//afx_msg void OnPropertyUpdateThread(UINT wParam, LONG lParam);
 	DECLARE_MESSAGE_MAP()
 };
 

@@ -24,8 +24,16 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CTChart m_Min_Chart;
+	CStatic spread_static;
+	CEdit spread_edit;
+	CTChart m_Spread_Chart;
+	CFont spread_static_font;
+	CFont spread_edit_font;
+
 	DECLARE_EVENTSINK_MAP()
 	void OnDblClickTchart1();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	virtual BOOL OnInitDialog();
 };

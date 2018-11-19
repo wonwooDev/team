@@ -42,6 +42,8 @@ protected:  // 컨트롤 모음이 포함된 멤버입니다.
 	CMFCToolBar			m_DataPalyToolBar;
 	CMFCToolBar			m_ROIREFToolBar;
 	CMFCToolBar			m_FocusToolBar;	
+	CMFCToolBar			m_ZoomToolBar;
+	CMFCToolBar			m_MeasureSideToolBar;
 
 	CMFCToolBar*		m_pUserToolbar;
 

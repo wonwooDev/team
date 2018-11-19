@@ -125,8 +125,6 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 		bSplitterCreaged = true;
 	}
 
-
-	
 	return TRUE;
 
 	//return CMDIChildWndEx::OnCreateClient(lpcs, pContext);
@@ -251,14 +249,7 @@ void CChildFrame::OnClose()
 		if (pDoc->m_OpenMode == 1)
 		{
 			theApp.m_bFileOpen = false;
-			/*
-			theApp.m_wndSplitter.DestroyWindow();
-			theApp.m_GFVSplitter.DestroyWindow();
-			theApp.m_ScaleSplitter.DestroyWindow();
-			*/
-			//m_wndSplitter.CloseWindow();
-			//m_GFVSplitter.CloseWindow();
-			//m_ScaleSplitter.CloseWindow();
+
 			CMDIChildWndEx::OnClose();
 		}
 		else

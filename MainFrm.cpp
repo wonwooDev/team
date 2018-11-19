@@ -141,6 +141,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	
 	m_DataPlaySlider.EnableWindow(0);	
 
+
 	/// Focus *******************************************************************
 	if (!m_FocusToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, CRect(1, 1, 1, 1), IDR_TOOLBAR_FOCUS) ||
 		!m_FocusToolBar.LoadToolBar(theApp.m_bHiColorIcons ? IDR_TOOLBAR_FOCUS : IDR_TOOLBAR_FOCUS))
@@ -153,7 +154,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	ASSERT(bNameValid);
 	m_FocusToolBar.SetWindowText(strToolBarName);	
 
-
 	/// ROI & REF *******************************************************************
 	if (!m_ROIREFToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, CRect(1, 1, 1, 1), IDR_ROI_REF) ||
 		!m_ROIREFToolBar.LoadToolBar(theApp.m_bHiColorIcons ? IDR_ROI_REF : IDR_ROI_REF))
@@ -165,6 +165,29 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_ROIREF);
 	ASSERT(bNameValid);
 	m_ROIREFToolBar.SetWindowText(strToolBarName);
+
+	/// Zoom In/Out *******************************************************************
+	if (!m_ZoomToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, CRect(1, 1, 1, 1), IDR_TOOLBAR_ZOOM) ||
+		!m_ZoomToolBar.LoadToolBar(theApp.m_bHiColorIcons ? IDR_TOOLBAR_ZOOM : IDR_TOOLBAR_ZOOM))
+	{
+		TRACE0("도구 모음을 만들지 못했습니다.\n");
+		return -1;      // 만들지 못했습니다.
+	}
+	bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_ZOOM);
+	ASSERT(bNameValid);
+	m_ZoomToolBar.SetWindowText(strToolBarName);
+
+	/// Measurement Side *******************************************************************
+	if (!m_MeasureSideToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, CRect(1, 1, 1, 1), IDR_MEASURE_SIDE) ||
+		!m_MeasureSideToolBar.LoadToolBar(theApp.m_bHiColorIcons ? IDR_MEASURE_SIDE : IDR_MEASURE_SIDE))
+	{
+		TRACE0("도구 모음을 만들지 못했습니다.\n");
+		return -1;      // 만들지 못했습니다.
+	}
+	bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_MEASURE_SIDE);
+	ASSERT(bNameValid);
+	m_MeasureSideToolBar.SetWindowText(strToolBarName);
+
 		
 	//**********************************************************************************************************************
 
@@ -191,6 +214,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_DataPalyToolBar.EnableDocking(CBRS_ALIGN_ANY);
 	m_FocusToolBar.EnableDocking(CBRS_ALIGN_ANY);
 	m_ROIREFToolBar.EnableDocking(CBRS_ALIGN_ANY);
+	m_ZoomToolBar.EnableDocking(CBRS_ALIGN_ANY);
+	m_MeasureSideToolBar.EnableDocking(CBRS_ALIGN_ANY);
 	
 	EnableDocking(CBRS_ALIGN_ANY);
 
@@ -201,7 +226,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	DockPane(&m_DataPalyToolBar);
 	DockPane(&m_FocusToolBar);
 	DockPane(&m_ROIREFToolBar);
-
+	DockPane(&m_ZoomToolBar);
+	DockPane(&m_MeasureSideToolBar);
+	
 	///m_wndMenuBar.ShowWindow(0);
 	
 	// Visual Studio 2005 스타일 도킹 창 동작을 활성화합니다.
@@ -300,6 +327,7 @@ BOOL CMainFrame::CreateDockingWindows()
 	//	TRACE0("출력 창을 만들지 못했습니다.\n");
 	//	return FALSE; // 만들지 못했습니다.
 	//}
+
 	CString strOutputWnd;
 	bNameValid = strOutputWnd.LoadString(IDS_LOGO_WND);
 	ASSERT(bNameValid);
@@ -365,7 +393,6 @@ LONG CMainFrame::OnDDAQDataMsg(UINT wParam, LONG )
 
 	return 0;
 }
-
 
 void CMainFrame::OnWindowManager()
 {
@@ -486,7 +513,6 @@ BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 		{
 			CPyroSoftMDoc *pDoc = m_pCurrentDoc;
 			
-
 			if(pDoc==NULL) 
 				return CMDIFrameWndEx::OnNotify(wParam, lParam, pResult);
 						
@@ -502,7 +528,14 @@ BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 
 				if(ret) {
 					pDoc->UpdateAllViews(NULL, 1);
-					theApp.m_pPropertyWnd->UpdateDataSet();		
+
+					//theApp.PropertyUpdateMsgThread();
+					//theApp.m_pPropertyWnd->UpdateDataSet();		
+					theApp.DDAQ_IRDX_FILE_GetCurDataSet(pDoc->m_hIRDX_Doc, &(pDoc->m_IdxDS));
+					theApp.DDAQ_IRDX_ACQUISITION_GetTimeStampString(pDoc->m_hIRDX_Doc, theApp.m_systemDate, theApp.m_systemTime);
+					theApp.m_pPropertyWnd->pFile_CurDR->SetValue((_variant_t)(pDoc->m_IdxDS + 1));
+					theApp.m_pPropertyWnd->pDataAcq_Date->SetValue((_variant_t)(theApp.m_systemDate));
+					theApp.m_pPropertyWnd->pDataAcq_Time->SetValue((_variant_t)(theApp.m_systemTime));
 				}
 				else {
 					int aaaa = 100;
