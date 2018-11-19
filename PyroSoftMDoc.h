@@ -110,6 +110,12 @@ typedef struct
 	int by;
 } EXCLUSIVE_ROI;
 
+typedef struct {
+	int lx;
+	int rx;
+	int ty;
+	int by;
+}EROI_PROCESSED;
 
 class CPyroSoftMDoc : public CDocument
 {
@@ -328,6 +334,7 @@ public:
 
 	int					m_ZoomMode;
 	float				m_ZoomRatio;
+	float				zoom_inAuto;
 
 	int					m_BROI_minSize;
 
@@ -379,6 +386,8 @@ public:
 
 	float				POI_TemperatureArray[MAX_POI_NUM];
 
+	bool bShouldWrite[MAX_ROI_CNT];
+	EROI_PROCESSED exclusived[MAX_EROI_CNT];
 	// 작업입니다.
 public:
 
@@ -416,6 +425,7 @@ public:
 	void				FSetFrequency();
 	void				IRDXUpdate();
 	void				SwitchDirection();
+	void				CheckWriting();
 
 	// 재정의입니다.
 public:

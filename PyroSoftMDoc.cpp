@@ -309,6 +309,19 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	m_ResultData.Min = m_ResultData.Max = m_ResultData.Avg = 600.0f;
 
 	pResultData = m_Result;
+
+	for (int k = 0; k < MAX_ROI_CNT; k++) {
+		bShouldWrite[k] = true;
+	}
+
+	for (int k = -; k < MAX_EROI_CNT; k++) {
+		exclusived[k].lx = 0;
+		exclusived[k].rx = 0;
+		exclusived[k].ty = 0;
+		exclusived[k].by = 0;
+	}
+
+	zoom_inAuto = 0.0f;
 }
 
 void CALLBACK ClientTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2) {
@@ -1042,6 +1055,13 @@ BROI_rx = BROI->GetPosXY(X_RIGHT);
 BROI_ty = BROI->GetPosXY(Y_TOP);
 BROI_by = BROI->GetPosXY(Y_BOTTOM);
 
+for (int k = 0; k < MAX_EROI_CNT; k++) {
+	exclusived[k].lx = 0;
+	exclusived[k].rx = 0;
+	exclusived[k].ty = 0;
+	exclusived[k].by = 0;
+}
+
 /////////////////////////// 계산 /////////////////////////////////
 
 if (BROI_rx != 0 && BROI_by != 0)
@@ -1162,6 +1182,10 @@ if (BROI_rx != 0 && BROI_by != 0)
 			if (EROI[j]->GetPosXY(X_LEFT) < min_x[i] && EROI[j]->GetPosXY(X_RIGHT) > max_x[i] && (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i]) || 
 				EROI[j]->GetPosXY(X_LEFT) > min_x[i] && EROI[j]->GetPosXY(X_RIGHT) < max_x[i] && (EROI[j]->GetPosXY(Y_TOP) > max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < min_y[i]))
 			{
+				exclusived[i].lx = min_x[i];
+				exclusived[i].rx = max_x[i];
+				exclusived[i].ty = min_y[i];
+				exclusived[i].by = max_y[i];
 				max_x[i] = 0;
 				min_x[i] = 0;
 				min_y[i] = 0;
@@ -2260,12 +2284,20 @@ void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
 
 	//fprintf(stream, "%.2f\t", m_Transmission);
 
-	for (int i = 0; i < m_ROICount; i++)
-	{
-		//fprintf(stream, "%.2f\t%.2f\t%.2f\t", m_ResultData.TMin[i], m_ResultData.TMax[i], m_ResultData.TAvg[i]);
-		fprintf(stream, "%.2f\t", m_ResultData.TMax[i]);
+	// write max temperature
+	if (EROI[0]->GetCount() > 0) {
+		CheckWriting();
+	}
+	for (int i = 0; i < m_ROICount; i++) {
+		if (bShouldWrite[i] == false) {
+			fprintf(stream, " \t", m_ResultData.TMax[i]);
+		}
+		else {
+			fprintf(stream, "%.2f\t", m_ResultData.TMax[i]);
+		}
 	}
 
+	// write spread temperature
 	dummy.Format("");
 	int iTemp = 0;
 	for (int k = 0; k < MAX_ROI_CNT; k++) {
@@ -3082,46 +3114,94 @@ void CPyroSoftMDoc::SwitchDirection()
 void CPyroSoftMDoc::OnButtonZoomin()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	if (m_ZoomMode<11) 	m_ZoomMode++;
-
-	switch (m_ZoomMode) {
-	case ZOOM_QUATER:
-		m_ZoomRatio = 0.25;
-		break;
-	case ZOOM_HALF:
-		m_ZoomRatio = 0.5;
-		break;
-	case ZOOM_ONE:
-		m_ZoomRatio = 1;
-		break;
-	case ZOOM_TWOTIMES:
-		m_ZoomRatio = 2;
-		break;
-	case ZOOM_THREETIMES:
-		m_ZoomRatio = 3;
-		break;
-	case ZOOM_FOURTIMES:
-		m_ZoomRatio = 4;
-		break;
-	case ZOOM_FIVETIMES:
-		m_ZoomRatio = 5;
-		break;
-	case ZOOM_SIXTIMES:
-		m_ZoomRatio = 6;
-		break;
-	case ZOOM_EIGHTTIMES:
-		m_ZoomRatio = 8;
-		break;
-	case ZOOM_TENTIMES:
-		m_ZoomRatio = 10;
-		break;
-	case ZOOM_FIFTEENTIMES:
-		m_ZoomRatio = 15;
-		break;
-	default:
-		m_ZoomMode = ZOOM_AUTO;
-		m_ZoomRatio = 1;
-		break;
+	int previous = m_ZoomMode;
+	if (previous == ZOOM_AUTO) {		// auto 상태에서 줌 땡기기 버튼을 누름
+		if (zoom_inAuto < 0.25) {
+			m_ZoomRatio = 0.25;
+			m_ZoomMode = ZOOM_QUATER;
+		}
+		else if (0.25 < zoom_inAuto  && zoom_inAuto < 0.5) {
+			m_ZoomRatio = 0.5;
+			m_ZoomMode = ZOOM_HALF;
+		}
+		else if (0.5 < zoom_inAuto && zoom_inAuto < 1) {
+			m_ZoomRatio = 1;
+			m_ZoomMode = ZOOM_ONE;
+		}
+		else if (1 < zoom_inAuto && zoom_inAuto < 2) {
+			m_ZoomRatio = 2;
+			m_ZoomMode = ZOOM_TWOTIMES;
+		}
+		else if (2 < zoom_inAuto && zoom_inAuto < 3) {
+			m_ZoomRatio = 3;
+			m_ZoomMode = ZOOM_THREETIMES;
+		}
+		else if (3 < zoom_inAuto && zoom_inAuto < 4) {
+			m_ZoomRatio = 4;
+			m_ZoomMode = ZOOM_FOURTIMES;
+		}
+		else if (4 < zoom_inAuto && zoom_inAuto < 5) {
+			m_ZoomRatio = 5;
+			m_ZoomMode = ZOOM_FIVETIMES;
+		}
+		else if (5 < zoom_inAuto && zoom_inAuto < 6) {
+			m_ZoomRatio = 6;
+			m_ZoomMode = ZOOM_SIXTIMES;
+		}
+		else if (6 < zoom_inAuto && zoom_inAuto < 8) {
+			m_ZoomRatio = 8;
+			m_ZoomMode = ZOOM_EIGHTTIMES;
+		}
+		else if (8 < zoom_inAuto && zoom_inAuto < 10) {
+			m_ZoomRatio = 10;
+			m_ZoomMode = ZOOM_TENTIMES;
+		}
+		else if (10 < zoom_inAuto && zoom_inAuto < 15) {
+			m_ZoomRatio = 15;
+			m_ZoomMode = ZOOM_FIFTEENTIMES;
+		}
+	}
+	else {
+		if (m_ZoomMode < 11) 	m_ZoomMode++;
+		switch (m_ZoomMode) {
+		case ZOOM_QUATER:
+			m_ZoomRatio = 0.25;
+			break;
+		case ZOOM_HALF:
+			m_ZoomRatio = 0.5;
+			break;
+		case ZOOM_ONE:
+			m_ZoomRatio = 1;
+			break;
+		case ZOOM_TWOTIMES:
+			m_ZoomRatio = 2;
+			break;
+		case ZOOM_THREETIMES:
+			m_ZoomRatio = 3;
+			break;
+		case ZOOM_FOURTIMES:
+			m_ZoomRatio = 4;
+			break;
+		case ZOOM_FIVETIMES:
+			m_ZoomRatio = 5;
+			break;
+		case ZOOM_SIXTIMES:
+			m_ZoomRatio = 6;
+			break;
+		case ZOOM_EIGHTTIMES:
+			m_ZoomRatio = 8;
+			break;
+		case ZOOM_TENTIMES:
+			m_ZoomRatio = 10;
+			break;
+		case ZOOM_FIFTEENTIMES:
+			m_ZoomRatio = 15;
+			break;
+		default:
+			m_ZoomMode = ZOOM_AUTO;
+			m_ZoomRatio = 1;
+			break;
+		}
 	}
 	theApp.m_pPropertyWnd->OnChangedZoomOnly();
 	UpdateAllViews(NULL, 2);
@@ -3190,4 +3270,17 @@ void CPyroSoftMDoc::OnUpdateButtonZoomout(CCmdUI *pCmdUI)
 	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
 	if (m_ZoomMode == 0)pCmdUI->Enable(FALSE);
 	else pCmdUI->Enable(TRUE);
+}
+
+void CPyroSoftMDoc::CheckWriting() {
+	for (int k = 0; k < m_ROICount; k++) {		// find target roi in exclusive roi
+		if (m_ResultData.TMax[k] == 0 ||
+			EROI[k]->GetPosXY(X_LEFT) < exclusived[k].lx && EROI[k]->GetPosXY(X_RIGHT) > exclusived[k].rx ||
+			EROI[k]->GetPosXY(Y_TOP) < exclusived[k].ty && EROI[k]->GetPosXY(Y_BOTTOM) > exclusived[k].by) {
+			bShouldWrite[k] = false;
+		}
+		else {
+			bShouldWrite[k] = true;
+		}
+	}
 }
