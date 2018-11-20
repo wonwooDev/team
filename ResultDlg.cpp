@@ -344,7 +344,9 @@ void CResultDlg::OnBnClickedClearGraph()
 		m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
 		//m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
 	}
-	m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
+	for (int k = 0; k < 4; k++) {
+		m_SpreadTabDlg.m_Spread_Chart.Series(k).Clear();
+	}
 
 	pDoc->m_bSpreadCondition = true;
 	pDoc->m_ChartFlag = false;
