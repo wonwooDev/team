@@ -247,6 +247,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		float zoomy = (float)wnd_sizey / (float)m_bmp_isize_y;
 
 		m_bmp_zoom = __min(zoomx, zoomy);
+		pDoc->zoom_inAuto = m_bmp_zoom;
 
 		// destination size
 		m_bmp_size_x = (int)(m_bmp_zoom*m_bmp_isize_x);		//실제 뿌려 줄 화면
