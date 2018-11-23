@@ -1,0 +1,12 @@
+
+Paul Bourke
+~pbourke/geometry/insidepoly/
+
+Deteriming If a Point Lies on the Interior of a Polygo
+
+e
+r
+t
+
+123
+
