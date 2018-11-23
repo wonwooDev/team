@@ -4,8 +4,6 @@ Paul Bourke
 
 Deteriming If a Point Lies on the Interior of a Polygo
 
-e
-r
 
 123
 
