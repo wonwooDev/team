@@ -110,11 +110,13 @@ void CROIGridView::InitStatusData()
 	m_ROIGridDlg.m_ROI_GridView.put_Row(1);								// trace row
 	m_ROIGridDlg.m_ROI_GridView.put_Cols(pDoc->m_ROICount + 2);
 
-	colWidth = (rectClient.Width() - 73) * 15 / pDoc->m_ROICount;
+	//colWidth = (rectClient.Width() - 73) * 15 / pDoc->m_ROICount;
+	colWidth = (rectClient.Width() * 15) / pDoc->m_ROICount + 1;
 
 	SetColProperty(0, pDoc->m_ROICount + 1, "ROI #", colWidth, 0);
 	m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(0, pDoc->m_ROICount + 1, _T("Spread"));
 	m_ROIGridDlg.m_ROI_GridView.put_ColAlignment(pDoc->m_ROICount + 1, 4);
+	m_ROIGridDlg.m_ROI_GridView.put_ColWidth(pDoc->m_ROICount + 1, colWidth);
 
 	// column #1 naming
 	m_ROIGridDlg.m_ROI_GridView.put_Rows(2);
@@ -122,7 +124,8 @@ void CROIGridView::InitStatusData()
 	m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(1, 0, _T("Max Temp"));
 
 	// height adjust
-	m_ROIGridDlg.m_ROI_GridView.put_RowHeight(1, (rectClient.Height() - 42) / 3 * 15);
+	//m_ROIGridDlg.m_ROI_GridView.put_RowHeight(1, (rectClient.Height() - 42) / 3 * 15);
+	m_ROIGridDlg.m_ROI_GridView.put_RowHeight(1, (rectClient.Height() - 42) * 15);
 
 	// 중앙 정렬한 column, row를 제외한 나머지 cell은 기본 표기 방법으로 변경
 	for (int i = 1; i < 2; i++)
@@ -318,7 +321,7 @@ void CROIGridView::UpdateGridControlSet()
 			
 
 			for (int i = 1; i < 3; i++)
-				m_ROIGridDlg.m_ROI_GridView.put_RowHeight(i, (rectClient.Height() - 40) / 4 * 15);
+				m_ROIGridDlg.m_ROI_GridView.put_RowHeight(i, (rectClient.Height() - 42) / 2 * 15);
 
 			// 첫번째 column, row에만 text alignment 적용
 			for (int i = 1; i < 3; i++)
@@ -339,7 +342,7 @@ void CROIGridView::UpdateGridControlSet()
 			m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(1, 0, _T("Max Temp"));
 
 			for (int i = 1; i < 2; i++)
-				m_ROIGridDlg.m_ROI_GridView.put_RowHeight(i, (rectClient.Height() - 42) / 3 * 15);
+				m_ROIGridDlg.m_ROI_GridView.put_RowHeight(i, (rectClient.Height() - 42) * 15);
 
 
 			// 첫번째 column, row에만 text alignment 적용

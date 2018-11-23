@@ -2292,7 +2292,7 @@ void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
 		CheckWriting();
 	}
 	for (int i = 0; i < m_ROICount; i++) {
-		if (bShouldWrite[i] == false) {
+		if (bShouldWrite[i] == false || m_ResultData.TMax[i] == 0) {
 			fprintf(stream, " \t", m_ResultData.TMax[i]);
 		}
 		else {
@@ -2312,6 +2312,7 @@ void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
 			break;
 		}
 	}
+
 	if (tmpFlag == true) dummy.Format(" ");
 	else dummy.Format("%.1f", m_spreadTempr);
 
@@ -3327,7 +3328,7 @@ void CPyroSoftMDoc::OnUpdateButtonZoomout(CCmdUI *pCmdUI)
 
 void CPyroSoftMDoc::CheckWriting() {
 	for (int k = 0; k < m_ROICount; k++) {		// find target roi in exclusive roi
-		if (m_ResultData.TMax[k] == 0 ||
+		if (m_ResultData.TMax[k] == 0 || 
 			EROI[k]->GetPosXY(X_LEFT) < exclusived[k].lx && EROI[k]->GetPosXY(X_RIGHT) > exclusived[k].rx ||
 			EROI[k]->GetPosXY(Y_TOP) < exclusived[k].ty && EROI[k]->GetPosXY(Y_BOTTOM) > exclusived[k].by) {
 			bShouldWrite[k] = false;
