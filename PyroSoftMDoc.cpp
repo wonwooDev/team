@@ -1000,7 +1000,7 @@ void CPyroSoftMDoc::CalculateResult(int index, int sizeX, int sizeY, float* pBuf
 //}
 
 
-/////  ROI 계산 ////////		mody 10-01
+/////  ROI 계산 ////////		
 void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
 {
 	/// pBuffer의 주소값이 아닌 안의 배열에 값이 존재 하지 않는 조건문으로 변경해야한다.
@@ -1365,7 +1365,6 @@ void CPyroSoftMDoc::OnNewDataReady()
 		}
 	}
 
-	// mody 10-18
 	if (m_ROIBufferCnt >= m_ROIBufferLimit)	
 	{
 		int cnt = 0;
@@ -2626,7 +2625,7 @@ void CPyroSoftMDoc::OnDeviceLoggingStop()
 
 		m_RHKEndTime = CTime::GetCurrentTime();
 
-		// ROI값들 초기화		///mody 05-17
+		// ROI값들 초기화		
 		InitROI();
 		// RHK값 초기화
 		InitRHKValues();
@@ -3312,14 +3311,12 @@ void CPyroSoftMDoc::OnButtonZoomout()
 	UpdateAllViews(NULL, 2);
 }
 
-
 void CPyroSoftMDoc::OnUpdateButtonZoomin(CCmdUI *pCmdUI)
 {
 	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
 	if (m_ZoomMode == 11) pCmdUI->Enable(FALSE);
 	else pCmdUI->Enable(TRUE);
 }
-
 
 void CPyroSoftMDoc::OnUpdateButtonZoomout(CCmdUI *pCmdUI)
 {
