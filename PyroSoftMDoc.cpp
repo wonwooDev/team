@@ -2312,9 +2312,7 @@ void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
 			break;
 		}
 	}
-	//for (int k = 0; k < iTemp; k++) {
 
-	//}
 	if (tmpFlag == true) dummy.Format(" ");
 	else dummy.Format("%.1f", m_spreadTempr);
 
