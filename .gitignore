@@ -1,0 +1,4 @@
+*.bmp
+*.txt
+/Debug
+/Release

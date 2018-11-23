@@ -169,7 +169,7 @@ int COOI::GetMinSize() {
 	return this->minSize;
 }
 
-bool COOI::SelectObj(RECT* CBaseRect, unsigned short ux, unsigned short uy, CPoint m_XY, float zoom, POINT ClickedDistance)
+bool COOI::SelectObj(RECT* CBaseRect, unsigned short ux, unsigned short uy, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance)
 {
 	bool result = FALSE;
 	int OOI_lx, OOI_rx, OOI_ty, OOI_by;
@@ -178,61 +178,63 @@ bool COOI::SelectObj(RECT* CBaseRect, unsigned short ux, unsigned short uy, CPoi
 
 	if (this->lx < ux &&  this->ty > uy)
 	{
-		result = SetInvaliRect(CBaseRect, QUADRANT1, 3, 50, 10, 30, m_XY, zoom, ClickedDistance);
-	}
-	else if (this->lx < ux &&  this->ty < uy)
-	{
-		result = SetInvaliRect(CBaseRect, QUADRANT2, 3, 3, 10, 30, m_XY, zoom, ClickedDistance);
-	}
-	else if (this->lx > ux &&  this->ty < uy)
-	{
-		result = SetInvaliRect(CBaseRect, QUADRANT3, 3, 3, 10, 30, m_XY, zoom, ClickedDistance);
+		result = SetInvaliRect(CBaseRect, QUADRANT1, 0.1, 0.1, m_XY, moveOffs_x, moveOffs_y, zoom, ClickedDistance);
 	}
 	else if (this->lx > ux &&  this->ty > uy)
 	{
-		result = SetInvaliRect(CBaseRect, QUADRANT4, 3, 50, 10, 30, m_XY, zoom, ClickedDistance);
+		result = SetInvaliRect(CBaseRect, QUADRANT2, 0.1, 0.1, m_XY, moveOffs_x, moveOffs_y, zoom, ClickedDistance);
+	}
+	else if (this->lx > ux &&  this->ty < uy)
+	{
+		result = SetInvaliRect(CBaseRect, QUADRANT3, 0.1, 0.1, m_XY, moveOffs_x, moveOffs_y, zoom, ClickedDistance);
+	}
+	else if (this->lx < ux &&  this->ty < uy)
+	{
+		result = SetInvaliRect(CBaseRect, QUADRANT4, 0.1, 0.1, m_XY, moveOffs_x, moveOffs_y, zoom, ClickedDistance);
 	}
 	return result;
 }
 
-bool COOI::SetInvaliRect(RECT* CBaseRect, int quadrant, int sx, int sy, int ex, int ey, CPoint m_XY, float zoom, POINT ClickedDistance)
+
+bool COOI::SetInvaliRect(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance)
 {
 	bool result = TRUE;
 	int OOI_lx, OOI_rx, OOI_ty, OOI_by;
+	double tmp1, tmp2;
 
 	InputXYVal(OOI_lx, OOI_rx, OOI_ty, OOI_by);
+
+	OOI_lx += 1; OOI_rx += 1;
+	OOI_ty += 1; OOI_by += 1;
 
 	switch (quadrant)
 	{
 	case QUADRANT1:
-		CBaseRect->left = OOI_lx * zoom - sx;
-		CBaseRect->top = m_XY.y - ey;
-		CBaseRect->right = m_XY.x + ex;
-		CBaseRect->bottom = OOI_ty * zoom + sy;
+		tmp1 = OOI_lx * zoom ;
+		tmp2 = m_XY.x;
+		CBaseRect->left = OOI_lx * zoom * (1 - static_factor) + moveOffs_x;
+		CBaseRect->top = m_XY.y * (1 - dynamic_factor);
+		CBaseRect->right = m_XY.x * (1 + dynamic_factor);
+		CBaseRect->bottom = OOI_ty * zoom * (1 + static_factor) + moveOffs_y;
 		break;
 	case QUADRANT2:
-		CBaseRect->left = OOI_lx * zoom - sx;
-		CBaseRect->top = OOI_ty * zoom - sy;
-		CBaseRect->right = m_XY.x + ex;
-		CBaseRect->bottom = m_XY.y + ey;
+		CBaseRect->left = m_XY.x * (1 - dynamic_factor);
+		CBaseRect->top = m_XY.y * (1 - dynamic_factor);
+		CBaseRect->right = OOI_lx * zoom * (1 + static_factor) + moveOffs_x;
+		CBaseRect->bottom =  OOI_ty * zoom * (1 + static_factor) + moveOffs_y;
 		break;
 	case QUADRANT3:
-		CBaseRect->left = m_XY.x - ex;
-		CBaseRect->top = OOI_ty * zoom - sy;
-		CBaseRect->right = OOI_lx * zoom + sx;
-		CBaseRect->bottom = m_XY.y + ey;
+		CBaseRect->left = m_XY.x * (1 - dynamic_factor);
+		CBaseRect->top = OOI_ty * zoom * (1 - static_factor) + moveOffs_y;
+		CBaseRect->right = OOI_lx * zoom * (1 + static_factor) + moveOffs_x;
+		CBaseRect->bottom = m_XY.y * (1 + dynamic_factor);
 		break;
 	case QUADRANT4:
-		CBaseRect->left = m_XY.x - ex;
-		CBaseRect->top = m_XY.y - ey;
-		CBaseRect->right = OOI_lx * zoom + sx;
-		CBaseRect->bottom = OOI_ty * zoom + sy;
-		break;
-	case ELLIPSESTART:
-		CBaseRect->left = (ClickedDistance.x - 2) * zoom - sx;
-		CBaseRect->top = (ClickedDistance.y - 2) * zoom - sy;
-		CBaseRect->right = (ClickedDistance.x + 2) * zoom + ex;
-		CBaseRect->bottom = (ClickedDistance.y + 2) * zoom + ey;
+		CBaseRect->left = OOI_lx * zoom * (1 - static_factor) + moveOffs_x;
+		CBaseRect->top = OOI_ty * zoom * (1 - static_factor) + moveOffs_y;
+		CBaseRect->right = m_XY.x * (1 + dynamic_factor);
+		CBaseRect->bottom =  m_XY.y * (1 + dynamic_factor);
+
 		break;
 	default:
 		result = FALSE;
@@ -590,6 +592,42 @@ bool CLineStretch::SetCatchLNP(int line_case, bool flag)
 	return result;
 }
 
+bool CLineStretch::InvalidateRegion(RECT* CBaseRect, int lineCase, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance)
+{
+	bool result = TRUE;
+	int OOI_lx, OOI_rx, OOI_ty, OOI_by;
+	double tmp1, tmp2;
+
+	OOI_lx = pOOI->GetPosXY(X_LEFT);
+	OOI_rx = pOOI->GetPosXY(X_RIGHT);
+	OOI_ty = pOOI->GetPosXY(Y_TOP);
+	OOI_by = pOOI->GetPosXY(Y_BOTTOM);
+
+	OOI_lx += 1; OOI_rx += 1;
+	OOI_ty += 1; OOI_by += 1;
+
+	switch (lineCase)
+	{
+	case HORIZONTALITY:
+		CBaseRect->left = m_XY.x * (1 - dynamic_factor);
+		CBaseRect->top = OOI_ty * zoom * (1 - static_factor) + moveOffs_y;
+		CBaseRect->right = m_XY.x * (1 + dynamic_factor);
+		CBaseRect->bottom = OOI_by * zoom * (1 + static_factor) + moveOffs_y;
+		break;
+	case VERTICALITY:
+		CBaseRect->left = OOI_lx * zoom * (1 - static_factor) + moveOffs_x;
+		CBaseRect->top = m_XY.y * (1 - dynamic_factor);
+		CBaseRect->right = OOI_rx * zoom * (1 + static_factor) + moveOffs_x;
+		CBaseRect->bottom = m_XY.y * (1 + dynamic_factor);
+		break;
+	default:
+		result = FALSE;
+		break;
+	}
+
+	return result;
+}
+
 
 POINT CPointStretch::Stretch(int point_case, POINT clkDistance, unsigned short ux, unsigned short uy)
 {
@@ -605,19 +643,33 @@ bool CPointStretch::SetCatchLNP(int point_case, bool flag) {
 	return 0;
 }
 
-POINT CStretchNoway::Stretch(int caseNoway, POINT clkDistance, unsigned short ux, unsigned short uy) {
+
+bool CPointStretch::InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance)
+{
+	return 0;
+}
+
+POINT CStretchNoway::Stretch(int caseNoway, POINT clkDistance, unsigned short ux, unsigned short uy) 
+{
 	POINT pt;
 	return pt;
 }
 
-bool CStretchNoway::GetCatchLNP(int point_case) {
+bool CStretchNoway::GetCatchLNP(int point_case) 
+{
 	return 0;
 }
 
-bool CStretchNoway::SetCatchLNP(int point_case, bool flag) {
+bool CStretchNoway::SetCatchLNP(int point_case, bool flag) 
+{
 	return 0;
 }
 
+
+bool CStretchNoway::InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance)
+{
+	return 0;
+}
 
 bool CRectMove::Move(int lx_temp, int ty_temp, int rx_temp, int by_temp) {
 	if (lx_temp < 1 || rx_temp < 1 || ty_temp < 1 || by_temp < 1)

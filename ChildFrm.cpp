@@ -215,7 +215,8 @@ void CChildFrame::OnSize(UINT nType, int cx, int cy)
 		//theApp.m_wndSplitter.RecalcLayout();
 		m_wndSplitter.RecalcLayout();
 
-		int nTop = rect.Height() - theApp.nStatusDlgHeight - 20;
+		//int nTop = rect.Height() - theApp.nStatusDlgHeight - 20;
+		int nTop = rect.Height() - theApp.nStatusDlgHeight + 30;
 		if (nTop <= 0) return;
 
 		//theApp.m_GFVSplitter.SetRowInfo(0, nTop, 50);

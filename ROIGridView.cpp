@@ -251,9 +251,9 @@ void CROIGridView::SetColProperty(int startCnt, int endCnt, CString familyName, 
 			m_ROIGridDlg.m_ROI_GridView.put_ColWidth(col_index + i, m_ROIGridDlg.controlWidth * 1.8);
 		else
 		{
-			if (i == 0)
-				m_ROIGridDlg.m_ROI_GridView.put_ColWidth(col_index + i, m_ROIGridDlg.controlWidth * 1.8);
-			else
+		//	if (i == 0)
+		//		m_ROIGridDlg.m_ROI_GridView.put_ColWidth(col_index + i, m_ROIGridDlg.controlWidth * 1.8);
+		//	else
 				m_ROIGridDlg.m_ROI_GridView.put_ColWidth(col_index + i, colWidth);
 		}
 	}
@@ -269,7 +269,8 @@ void CROIGridView::UpdateGridControlSet()
 
 	if (pDoc->columnUpdateFlag == true)
 	{
-		int colWidth = (rectClient.Width() - 73) * 15 / pDoc->m_ROICount;
+		//int colWidth = (rectClient.Width() - 73) * 15 / pDoc->m_ROICount;
+		int colWidth = (rectClient.Width() * 12) / (pDoc->m_POI_count + pDoc->m_ROICount + 1);
 		int columnTemp = (pDoc->m_POI_count) + (pDoc->m_ROICount) + 2;
 
 		// For redraw of grid control

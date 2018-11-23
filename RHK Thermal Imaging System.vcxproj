@@ -1,0 +1,365 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{71C560FB-A3DE-4087-8B9C-68982E5B1399}</ProjectGuid>
+    <RootNamespace>PyroSoftM</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
+    <CLRSupport>false</CLRSupport>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
+    <CLRSupport>false</CLRSupport>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <PlatformToolset>v141</PlatformToolset>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <PlatformToolset>v141</PlatformToolset>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Custom</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\RHK Thermal Imaging System\header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <BrowseInformation>true</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;NIDAQmx.lib;DiffStep.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\RHK Thermal Imaging System\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Custom</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\RHK Thermal Imaging System\header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <BrowseInformation>true</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;NIDAQmx.lib;DiffStep.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\RHK Thermal Imaging System\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>Custom</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\RHK Thermal Imaging System\header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <BrowseInformation>true</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>winmm.lib;NIDAQmx.lib;DiffStep.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\RHK Thermal Imaging System\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>Custom</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\RHK Thermal Imaging System\header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <BrowseInformation>true</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>winmm.lib;NIDAQmx.lib;DiffStep.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\RHK Thermal Imaging System\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0412</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="POINTER.cur" />
+    <None Include="PyroSoftM.reg" />
+    <None Include="ReadMe.txt" />
+    <None Include="res\bmp00001.bmp" />
+    <None Include="res\cursor1.cur" />
+    <None Include="res\cursor2.cur" />
+    <None Include="res\dataacq_.bmp" />
+    <None Include="res\icon1.ico" />
+    <None Include="res\icon2.ico" />
+    <None Include="res\mainfram.bmp" />
+    <None Include="res\output_wnd.ico" />
+    <None Include="res\output_wnd_hc.ico" />
+    <None Include="res\properties.bmp" />
+    <None Include="res\properties_hc.bmp" />
+    <None Include="res\properties_wnd.ico" />
+    <None Include="res\properties_wnd_hc.ico" />
+    <None Include="res\pyro.ico" />
+    <None Include="res\PyroSoftM.ico" />
+    <None Include="res\PyroSoftM.rc2" />
+    <None Include="res\PyroSoftMDoc.ico" />
+    <None Include="res\Toolbar.bmp" />
+    <None Include="res\toolbar1.bmp" />
+    <None Include="res\Toolbar256.bmp" />
+    <None Include="res\WWS_icon.ico" />
+    <None Include="UserImages.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AvgTabDlg.h" />
+    <ClInclude Include="CellRange.h" />
+    <ClInclude Include="CheckBoxPropertyGridProperty.h" />
+    <ClInclude Include="ChildFrm.h" />
+    <ClInclude Include="CoefficientDlg.h" />
+    <ClInclude Include="DataMsgThread.h" />
+    <ClInclude Include="DataSocket.h" />
+    <ClInclude Include="DlgAddNewDevice.h" />
+    <ClInclude Include="GridCell.h" />
+    <ClInclude Include="GridCellBase.h" />
+    <ClInclude Include="GridCtrl.h" />
+    <ClInclude Include="GridDropTarget.h" />
+    <ClInclude Include="InPlaceEdit.h" />
+    <ClInclude Include="LogoDlg.h" />
+    <ClInclude Include="LogoWnd.h" />
+    <ClInclude Include="MaxTabDlg.h" />
+    <ClInclude Include="MemDC.h" />
+    <ClInclude Include="MinTapDlg.h" />
+    <ClInclude Include="msflexgrid1.h" />
+    <ClInclude Include="OOI.h" />
+    <ClInclude Include="ScaleView.h" />
+    <ClInclude Include="StepDiffDlg.h" />
+    <ClInclude Include="ZoneInfDlg.h" />
+    <ClInclude Include="ResultView.h" />
+    <ClInclude Include="GlassFlowView.h" />
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="FloatPropertyGridProperty.h" />
+    <ClInclude Include="PropertyGridCtrl.h" />
+    <ClInclude Include="ResultDlg.h" />
+    <ClInclude Include="ScaleDlg.h" />
+    <ClInclude Include="ScaleWnd.h" />
+    <ClInclude Include="PropertiesWnd.h" />
+    <ClInclude Include="PyroSoftM.h" />
+    <ClInclude Include="PyroSoftMDoc.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="ROIGridDlg.h" />
+    <ClInclude Include="ROIGridView.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="tchart1.h" />
+    <ClInclude Include="TitleTip.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AvgTabDlg.cpp" />
+    <ClCompile Include="axis.cpp" />
+    <ClCompile Include="brush.cpp" />
+    <ClCompile Include="CheckBoxPropertyGridProperty.cpp" />
+    <ClCompile Include="ChildFrm.cpp" />
+    <ClCompile Include="CoefficientDlg.cpp" />
+    <ClCompile Include="DataMsgThread.cpp" />
+    <ClCompile Include="DataSocket.cpp" />
+    <ClCompile Include="DlgAddNewDevice.cpp" />
+    <ClCompile Include="fastlineseries.cpp" />
+    <ClCompile Include="gradient.cpp" />
+    <ClCompile Include="GridCell.cpp" />
+    <ClCompile Include="GridCellBase.cpp" />
+    <ClCompile Include="GridCtrl.cpp" />
+    <ClCompile Include="GridDropTarget.cpp" />
+    <ClCompile Include="InPlaceEdit.cpp" />
+    <ClCompile Include="lineseries.cpp" />
+    <ClCompile Include="LogoDlg.cpp" />
+    <ClCompile Include="LogoWnd.cpp" />
+    <ClCompile Include="MaxTabDlg.cpp" />
+    <ClCompile Include="MinTapDlg.cpp" />
+    <ClCompile Include="msflexgrid1.cpp" />
+    <ClCompile Include="OOI.cpp" />
+    <ClCompile Include="pen.cpp" />
+    <ClCompile Include="pointer.cpp" />
+    <ClCompile Include="ScaleView.cpp" />
+    <ClCompile Include="StepDiffDlg.cpp" />
+    <ClCompile Include="subgradient.cpp" />
+    <ClCompile Include="teeshadow.cpp" />
+    <ClCompile Include="ZoneInfDlg.cpp" />
+    <ClCompile Include="ResultView.cpp" />
+    <ClCompile Include="GlassFlowView.cpp" />
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="FloatPropertyGridProperty.cpp" />
+    <ClCompile Include="PropertyGridCtrl.cpp" />
+    <ClCompile Include="ResultDlg.cpp" />
+    <ClCompile Include="ScaleDlg.cpp" />
+    <ClCompile Include="ScaleWnd.cpp" />
+    <ClCompile Include="PropertiesWnd.cpp" />
+    <ClCompile Include="PyroSoftM.cpp" />
+    <ClCompile Include="PyroSoftMDoc.cpp" />
+    <ClCompile Include="series.cpp" />
+    <ClCompile Include="ROIGridDlg.cpp" />
+    <ClCompile Include="ROIGridView.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="tchart.cpp" />
+    <ClCompile Include="tchart1.cpp" />
+    <ClCompile Include="TitleTip.cpp" />
+    <ClCompile Include="valuelist.cpp" />
+    <ClCompile Include="valuelists.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RHK Thermal Imaging System.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\DIASDAQ\DIASDAQ.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\SIB\POSCO 개발 관련\마우스 회전 이미지.bmp" />
+    <Image Include="..\..\..\SIB\POSCO 개발 관련\마우스 회전 이미지.png" />
+    <Image Include="res\bmp00002.bmp" />
+    <Image Include="res\bmp00003.bmp" />
+    <Image Include="res\GTCLogo.png" />
+    <Image Include="res\ProgramName.png" />
+    <Image Include="res\RHK.ico" />
+    <Image Include="res\SamsungLogo.png" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="" _x007B_6262D3A0-531B-11CF-91F6-C2863C385E30_x007D_="CMsflexgrid1" _x007B_FCB4B50A-E3F1-4174-BD18-54C3B3287258_x007D_="CTchart1" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

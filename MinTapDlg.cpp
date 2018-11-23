@@ -47,7 +47,7 @@ void CMinTapDlg::OnDblClickTchart1()
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가합니다.
 	if (m_Spread_Chart.GetSeriesCount() > 0)
-		m_Spread_Chart.ShowEditor(0);
+		m_Spread_Chart.ShowEditor(0); 
 }
 
 void CMinTapDlg::OnSize(UINT nType, int cx, int cy)

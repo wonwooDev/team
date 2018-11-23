@@ -95,6 +95,9 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	//POI = new CPROI();
 	//LOI = new CLROI();
 	//ROI = new CTROI();
+	for (int i = 0; i < MAX_ROI_CNT; i++)
+		TROI[i] = new CTROI();
+	
 	for (int i = 0; i < MAX_EROI_CNT; i++)
 		EROI[i] = new CEROI();
 
@@ -251,10 +254,11 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 
 	for (int i = 0; i<MAX_ROI_CNT; i++)
 	{
-		max_x[i] = 0;
-		min_x[i] = 0;
-		max_y[i] = 0;
-		min_y[i] = 0;
+		TROI[i]->SetPosXY(X_LEFT, 0);
+		TROI[i]->SetPosXY(X_RIGHT, 0);
+		TROI[i]->SetPosXY(Y_TOP, 0);
+		TROI[i]->SetPosXY(Y_BOTTOM, 0);
+
 		temptt[i] = 0;
 
 		m_ROIBuffer[i] = 0;
@@ -309,6 +313,18 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	m_ResultData.Min = m_ResultData.Max = m_ResultData.Avg = 600.0f;
 
 	pResultData = m_Result;
+
+	// 승태 작업부분
+	for (int k = 0; k < MAX_ROI_CNT; k++) {
+		bShouldWrite[k] = true;
+	}
+	for (int k = 0; k < MAX_EROI_CNT; k++) {
+		exclusived[k].lx = 0;
+		exclusived[k].rx = 0;
+		exclusived[k].ty = 0;
+		exclusived[k].by = 0;
+	}
+	zoom_inAuto = 0.0f;
 }
 
 void CALLBACK ClientTimer(UINT m_nTimerID, UINT uiMsg, DWORD dwUser, DWORD dw1, DWORD d2) {
@@ -861,38 +877,38 @@ void CPyroSoftMDoc::CalculateResult(int index, int sizeX, int sizeY, float* pBuf
 //
 //	for (int i = 0; i < totalIndexCount - 2; i++)
 //	{
-//		pre_min_x[i] = min_x[i];
-//		pre_max_x[i] = max_x[i];
-//		pre_min_y[i] = min_y[i];
-//		pre_max_y[i] = max_y[i];
+//		pre_min_x[i] = TROI_lx[i];
+//		pre_max_x[i] = TROI_rx[i];
+//		pre_min_y[i] = TROI_ty[i];
+//		pre_max_y[i] = TROI_by[i];
 //
-//		min_x[i] = arr_PosLeftX[i+1];
-//		max_x[i] = arr_PosRightX[i+1];
-//		min_y[i] = arr_PosTopY[i+1];
+//		TROI_lx[i] = arr_PosLeftX[i+1];
+//		TROI_rx[i] = arr_PosRightX[i+1];
+//		TROI_ty[i] = arr_PosTopY[i+1];
 //		//if(arr_PosBottomY[i - 1] != 0)
-//			//max_y[i] = arr_PosBottomY[i-1];
+//			//TROI_by[i] = arr_PosBottomY[i-1];
 //		if(arr_PosBottomY[i] != 0)
-//			max_y[i] = arr_PosBottomY[i];
+//			TROI_by[i] = arr_PosBottomY[i];
 //	}
 //
 //	// totalIndexCount 값 보다 큰 인덱스 초기화
 //	if (totalIndexCount != 0)
 //	{
 //		for (int i = totalIndexCount - 2; i < MAX_ROI_CNT; i++) {
-//			min_x[i] = 0;
-//			max_x[i] = 0;
-//			min_y[i] = 0;
-//			max_y[i] = 0;
+//			TROI_lx[i] = 0;
+//			TROI_rx[i] = 0;
+//			TROI_ty[i] = 0;
+//			TROI_by[i] = 0;
 //		}
 //	}
 //	else
 //	{
 //		for (int i = 0; i < MAX_ROI_CNT; i++)
 //		{
-//			min_x[i] = 0;
-//			max_x[i] = 0;
-//			min_y[i] = 0;
-//			max_y[i] = 0;
+//			TROI_lx[i] = 0;
+//			TROI_rx[i] = 0;
+//			TROI_ty[i] = 0;
+//			TROI_by[i] = 0;
 //		}
 //	}
 //
@@ -907,10 +923,10 @@ void CPyroSoftMDoc::CalculateResult(int index, int sizeX, int sizeY, float* pBuf
 //
 //		if (m_ResultData.TMin[k] < pre_TMin[k] - (pre_TMin[k] * 0.05))
 //		{
-//			min_x[k] = pre_min_x[k];
-//			max_x[k] = pre_max_x[k];
-//			min_y[k] = pre_min_y[k];
-//			max_y[k] = pre_max_y[k];
+//			TROI_lx[k] = pre_min_x[k];
+//			TROI_rx[k] = pre_max_x[k];
+//			TROI_ty[k] = pre_min_y[k];
+//			TROI_by[k] = pre_max_y[k];
 //
 //			SearchTemperature(k, pBuffer, pixelCount, sumTemp, isArrFirst);
 //		}
@@ -921,16 +937,16 @@ void CPyroSoftMDoc::CalculateResult(int index, int sizeX, int sizeY, float* pBuf
 //
 //	for (int i = 0; i < m_ROICount; i++)
 //	{
-//		if (m_ResultData.TMin[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+//		if (m_ResultData.TMin[i] <= 0 || (TROI_lx[i] == 0 && TROI_ty[i] == 0 && TROI_rx[i] == 0 && TROI_by[i] == 0))
 //			m_ResultData.TMin[i] = 0.0f;
 //		else if (m_ResultData.TMin[i] < 600)
 //			m_ResultData.TMin[i] = 600.0f;
-//		if (m_ResultData.TMax[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+//		if (m_ResultData.TMax[i] <= 0 || (TROI_lx[i] == 0 && TROI_ty[i] == 0 && TROI_rx[i] == 0 && TROI_by[i] == 0))
 //			m_ResultData.TMax[i] = 0.0f;
-//		if (m_ResultData.TAvg[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+//		if (m_ResultData.TAvg[i] <= 0 || (TROI_lx[i] == 0 && TROI_ty[i] == 0 && TROI_rx[i] == 0 && TROI_by[i] == 0))
 //			m_ResultData.TAvg[i] = 0.0f;
 //
-//		if (min_y[i] == max_y[i])
+//		if (TROI_ty[i] == TROI_by[i])
 //		{
 //			m_ResultData.TMin[i] = 0;
 //			m_ResultData.TMinX[i] = 0;
@@ -951,9 +967,9 @@ void CPyroSoftMDoc::CalculateResult(int index, int sizeX, int sizeY, float* pBuf
 //
 //inline void CPyroSoftMDoc::SearchTemperature(int k, float *pBuffer, int *pixelCount, int *sumTemp, bool *isArrFirst)
 //{
-//	for (int j = min_y[k]; j <= max_y[k]; j++)
+//	for (int j = TROI_ty[k]; j <= TROI_by[k]; j++)
 //	{
-//		for (int i = min_x[k]; i <= max_x[k]; i++)
+//		for (int i = TROI_lx[k]; i <= TROI_rx[k]; i++)
 //		{
 //			float val = pBuffer[sizeX*j + i];
 //
@@ -990,7 +1006,8 @@ void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
 	/// pBuffer의 주소값이 아닌 안의 배열에 값이 존재 하지 않는 조건문으로 변경해야한다.
 
 	int BROI_lx, BROI_rx, BROI_ty, BROI_by;
-	int EROI_lx, EROI_rx, EROI_ty, EROI_by;
+	int EROI_lx[MAX_EROI_CNT], EROI_rx[MAX_EROI_CNT], EROI_ty[MAX_EROI_CNT], EROI_by[MAX_EROI_CNT];
+	int TROI_lx[MAX_ROI_CNT], TROI_rx[MAX_ROI_CNT], TROI_ty[MAX_ROI_CNT], TROI_by[MAX_ROI_CNT];
 	int arr_count = 0, max_arr = 0, hit_count = 0;	
 	int	m_baseROILXTmp_idx = 0;
 	int m_baseROIRXTmp_idx = 0;
@@ -1012,176 +1029,186 @@ void CPyroSoftMDoc::CalROI(int index, int sizeX, int sizeY, float* pBuffer)
 
 	for (int i = 0; i < m_ROICount; i++)	// ROI XY 좌표의 min, max 값 초기화
 	{
-		//max_x[i] = 0, max_y[i] = 0, min_x[i] = 0, min_y[i] = 0;
 		m_ResultData.TMinX[i] = 0; m_ResultData.TMinY[i] = 0;
 		m_ResultData.TMaxX[i] = 0; m_ResultData.TMaxY[i] = 0;
 	}
 
 	for (int i = 0; i < MAX_ROI_CNT; i++)
-isArrFirst[i] = true;
+		isArrFirst[i] = true;
 
-for (int i = 0; i < 512; i++)
-	m_row_projection[i] = 0;
+	for (int i = 0; i < 512; i++)
+		m_row_projection[i] = 0;
 
-for (int i = 0; i < 384; i++)
-	m_col_projection[i] = 0;
+	for (int i = 0; i < 384; i++)
+		m_col_projection[i] = 0;
 
-for (int i = 0; i < m_SelXPxlChrt_idx; i++)
-	m_SelXPixelChart[i] = 0;
+	for (int i = 0; i < m_SelXPxlChrt_idx; i++)
+		m_SelXPixelChart[i] = 0;
 
-m_SelXPxlChrt_idx = 0;
+	m_SelXPxlChrt_idx = 0;
 
-for (int i = 0; i < m_SelYPxlChrt_idx; i++)
-	m_SelYPixelChart[i] = 0;
+	for (int i = 0; i < m_SelYPxlChrt_idx; i++)
+		m_SelYPixelChart[i] = 0;
 
-m_SelYPxlChrt_idx = 0;
-m_ROI_loop_count = 0;
+	m_SelYPxlChrt_idx = 0;
 
-BROI_lx = BROI->GetPosXY(X_LEFT);
-BROI_rx = BROI->GetPosXY(X_RIGHT);
-BROI_ty = BROI->GetPosXY(Y_TOP);
-BROI_by = BROI->GetPosXY(Y_BOTTOM);
+	m_ROI_loop_count = 0;
 
-/////////////////////////// 계산 /////////////////////////////////
+	InitROI(BROI_lx, BROI_rx, BROI_ty, BROI_by, BROI->GetPosXY(X_LEFT), BROI->GetPosXY(X_RIGHT), BROI->GetPosXY(Y_TOP), BROI->GetPosXY(Y_BOTTOM));
 
-if (BROI_rx != 0 && BROI_by != 0)
-{
-	for (int i = BROI_ty; i < BROI_by; i++)
+	for (int i = 0; i < MAX_ROI_CNT; i++)
+		InitROI(TROI_lx[i], TROI_rx[i], TROI_ty[i], TROI_by[i], TROI[i]->GetPosXY(X_LEFT), TROI[i]->GetPosXY(X_RIGHT), TROI[i]->GetPosXY(Y_TOP), TROI[i]->GetPosXY(Y_BOTTOM));
+
+	for (int i = 0; i < MAX_EROI_CNT; i++)
+		InitROI(EROI_lx[i], EROI_rx[i], EROI_ty[i], EROI_by[i], EROI[i]->GetPosXY(X_LEFT), EROI[i]->GetPosXY(X_RIGHT), EROI[i]->GetPosXY(Y_TOP), EROI[i]->GetPosXY(Y_BOTTOM));
+
+	for (int k = 0; k < MAX_EROI_CNT; k++) {
+		exclusived[k].lx = 0;
+		exclusived[k].rx = 0;
+		exclusived[k].ty = 0;
+		exclusived[k].by = 0;
+	}
+
+	/////////////////////////// 계산 /////////////////////////////////
+
+	if (BROI_rx != 0 && BROI_by != 0)
 	{
-		for (int j = BROI_lx; j < BROI_rx; j++)
+		for (int i = BROI_ty; i < BROI_by; i++)
 		{
-			float val = pBuffer[sizeX*i + j];
-
-			::CalArr(m_row_projection, val, j, (int)BROI_lx);
-
-			if (val < m_Threshold)
+			for (int j = BROI_lx; j < BROI_rx; j++)
 			{
-				if (!isColFirst)
+				float val = pBuffer[sizeX*i + j];
+
+				::CalArr(m_row_projection, val, j, (int)BROI_lx);
+
+				if (val < m_Threshold)
 				{
-					isColFirst = true;
-					m_col_max = i;
-					m_col_min = i;
+					if (!isColFirst)
+					{
+						isColFirst = true;
+						m_col_max = i;
+						m_col_min = i;
+					}
+					else if (i > m_col_max)
+					{
+						m_col_max = i;
+					}
+					else if (i < m_col_min)
+					{
+						m_col_min = i;
+					}
+					//m_col_projection[i - m_BaseROI.ty] += val;
 				}
-				else if (i > m_col_max)
-				{
-					m_col_max = i;
-				}
-				else if (i < m_col_min)
-				{
-					m_col_min = i;
-				}
-				//m_col_projection[i - m_BaseROI.ty] += val;
 			}
 		}
-	}
 
-	//for (int i = BOXCAR; i < sizeof(m_row_projection) / sizeof(m_row_projection[0]) - BOXCAR; i++)	// x축의 projection 된 수 만큼
-	//{
+		//for (int i = BOXCAR; i < sizeof(m_row_projection) / sizeof(m_row_projection[0]) - BOXCAR; i++)	// x축의 projection 된 수 만큼
+		//{
 
-	//}
+		//}
 
-	CRect m_baseROI;
-	m_baseROI.left = BROI_lx;
-	m_baseROI.right = BROI_rx;
-	m_baseROI.top = BROI_ty;
-	m_baseROI.bottom = BROI_by;
+		CRect m_baseROI;
+		m_baseROI.left = BROI_lx;
+		m_baseROI.right = BROI_rx;
+		m_baseROI.top = BROI_ty;
+		m_baseROI.bottom = BROI_by;
 
-	::CalMeasure(pBuffer, &m_baseROI, &m_baseROIRXTmp_idx, m_upStepCoeff, m_middleStepCoeff, m_downStepCoeff, m_baseROILXTemp, m_baseROIRXTemp);
+		::CalMeasure(pBuffer, &m_baseROI, &m_baseROIRXTmp_idx, m_upStepCoeff, m_middleStepCoeff, m_downStepCoeff, m_baseROILXTemp, m_baseROIRXTemp);
 
-	for (int i = 0; i < m_baseROIRXTmp_idx; i++)
-	{
-		if (abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROILXTemp[i] - min_x[m_SelXPxlChrt_idx]) > 5)
-			min_x[m_SelXPxlChrt_idx] = m_baseROILXTemp[i];
-		if (abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROIRXTemp[i] - max_x[m_SelXPxlChrt_idx]) > 5)
-			max_x[m_SelXPxlChrt_idx] = m_baseROIRXTemp[i];
+		for (int i = 0; i < m_baseROIRXTmp_idx; i++)
+		{
+			if (abs(m_baseROILXTemp[i] - TROI_lx[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROILXTemp[i] - TROI_lx[m_SelXPxlChrt_idx]) > 5)
+				TROI[i]->SetPosXY(X_LEFT, m_baseROILXTemp[i]);
+			if (abs(m_baseROIRXTemp[i] - TROI_rx[m_SelXPxlChrt_idx]) < 2 || abs(m_baseROIRXTemp[i] - TROI_rx[m_SelXPxlChrt_idx]) > 5)
+				TROI[i]->SetPosXY(X_RIGHT, m_baseROIRXTemp[i]);
 
-		min_y[m_SelXPxlChrt_idx] = m_col_min;
-		max_y[m_SelXPxlChrt_idx] = m_col_max;
+			TROI[m_SelXPxlChrt_idx]->SetPosXY(Y_TOP, m_col_min);
+			TROI[m_SelXPxlChrt_idx]->SetPosXY(Y_BOTTOM, m_col_max);
 
-		m_SelXPxlChrt_idx++;
-	}
+			m_SelXPxlChrt_idx++;
+		}
+
+		for (int i = 0; i < MAX_EROI_CNT; i++)
+		{
+			TROI_lx[i] = TROI[i]->GetPosXY(X_LEFT);		TROI_rx[i] = TROI[i]->GetPosXY(X_RIGHT);
+			TROI_ty[i] = TROI[i]->GetPosXY(Y_TOP);	TROI_by[i] = TROI[i]->GetPosXY(Y_BOTTOM);
+		}
 	
-	for (int j = 0; j < MAX_EROI_CNT; j++)
-	{
-		for (int i = 0; i < m_SelXPxlChrt_idx; i++)
+		for (int j = 0; j < MAX_EROI_CNT; j++)
 		{
-			if (EROI[j]->GetDrawDone() == false)
-				break;
-			/*
-			if (EROI[j]->GetPosXY(X_LEFT) > min_y[i] && EROI[j]->GetPosXY(X_RIGHT) < max_y[i])
+			for (int i = 0; i < m_SelXPxlChrt_idx; i++)
 			{
-				if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i] || EROI[j]->GetPosXY(Y_TOP) > min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < max_y[i])
-				{
-					max_x[i] = 0;
-					min_x[i] = 0;
-					min_y[i] = 0;
-					max_y[i] = 0;
-				}
-				else if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i])
-				{
-					max_y[i] = EROI[j]->GetPosXY(Y_BOTTOM);
-				}
-				else if (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i])
-				{
-					min_y[i] = EROI[j]->GetPosXY(Y_TOP);
-				}
-			}
-			*/
-			if (EROI[j]->GetPosXY(X_LEFT) > min_x[i] && EROI[j]->GetPosXY(X_LEFT) < max_x[i])
-			{
-				if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i] || EROI[j]->GetPosXY(Y_TOP) > min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < max_y[i])
-					max_x[i] = EROI[j]->GetPosXY(X_LEFT);
-				else if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i])
-				{
-					max_x[i] = EROI[j]->GetPosXY(X_LEFT);
-					max_y[i] = EROI[j]->GetPosXY(Y_BOTTOM);
-				}
-				else if (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i])
-				{
-					max_x[i] = EROI[j]->GetPosXY(X_LEFT);
-					min_y[i] = EROI[j]->GetPosXY(Y_TOP);
-				}
-			}
+				if (EROI[j]->GetDrawDone() == false)
+					break;
 
-			if (EROI[j]->GetPosXY(X_RIGHT) > min_x[i] && EROI[j]->GetPosXY(X_RIGHT) < max_x[i])
-			{
-				if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i] || EROI[j]->GetPosXY(Y_TOP) > min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < max_y[i])
-					min_x[i] = EROI[j]->GetPosXY(X_RIGHT);
-				else if (EROI[j]->GetPosXY(Y_TOP) < min_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i])
+				if (EROI_lx[j] > TROI_lx[i] && EROI_lx[j] < TROI_rx[i])
 				{
-					min_x[i] = EROI[j]->GetPosXY(X_RIGHT);
-					max_y[i] = EROI[j]->GetPosXY(Y_BOTTOM);
+					if (EROI_ty[j] < TROI_ty[i] && EROI_by[j] > TROI_by[i] || EROI_ty[j] > TROI_ty[i] && EROI_by[j] < TROI_by[i])
+						TROI[i]->SetPosXY(X_RIGHT, EROI_lx[j]);
+					else if (EROI_ty[j] < TROI_ty[i] && EROI_by[j] > TROI_ty[i])
+					{
+						TROI[i]->SetPosXY(X_RIGHT, EROI_lx[j]);
+						TROI[i]->SetPosXY(Y_BOTTOM, EROI_by[j]);
+					}
+					else if (EROI_ty[j] < TROI_by[i] && EROI_by[j] > TROI_by[i])
+					{
+						TROI[i]->SetPosXY(X_RIGHT, EROI_lx[j]);
+						TROI[i]->SetPosXY(Y_TOP, EROI_ty[j]);
+					}
 				}
-				else if (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > max_y[i])
-				{
-					min_x[i] = EROI[j]->GetPosXY(X_RIGHT);
-					min_y[i] = EROI[j]->GetPosXY(Y_TOP);
-				}
-			}
 
-			if (EROI[j]->GetPosXY(X_LEFT) < min_x[i] && EROI[j]->GetPosXY(X_RIGHT) > max_x[i] && (EROI[j]->GetPosXY(Y_TOP) < max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) > min_y[i]) || 
-				EROI[j]->GetPosXY(X_LEFT) > min_x[i] && EROI[j]->GetPosXY(X_RIGHT) < max_x[i] && (EROI[j]->GetPosXY(Y_TOP) > max_y[i] && EROI[j]->GetPosXY(Y_BOTTOM) < min_y[i]))
-			{
-				max_x[i] = 0;
-				min_x[i] = 0;
-				min_y[i] = 0;
-				max_y[i] = 0;
+				if (EROI_rx[j] > TROI_lx[i] && EROI_rx[j] < TROI_rx[i])
+				{
+					if (EROI_ty[j] < TROI_ty[i] && EROI_by[j] > TROI_by[i] || EROI_ty[j] > TROI_ty[i] && EROI_by[j] < TROI_by[i])
+						TROI[i]->SetPosXY(X_LEFT, EROI_rx[j]);
+					else if (EROI_ty[j] < TROI_ty[i] && EROI_by[j] > TROI_ty[i])
+					{
+						TROI[i]->SetPosXY(X_LEFT, EROI_rx[j]);
+						TROI[i]->SetPosXY(Y_BOTTOM, EROI_by[j]);
+					}
+					else if (EROI_ty[j] < TROI_by[i] && EROI_by[j] > TROI_by[i])
+					{
+						TROI[i]->SetPosXY(X_LEFT, EROI_rx[j]);
+						TROI[i]->SetPosXY(Y_TOP, EROI_ty[j]);
+					}
+				}
+
+				if (EROI_lx[j] < TROI_lx[i] && EROI_rx[j] > TROI_rx[i] && (EROI_ty[j] < TROI_by[i] && EROI_by[j] > TROI_ty[i]) || 
+					EROI_lx[j] > TROI_lx[i] && EROI_rx[j] < TROI_rx[i] && (EROI_ty[j] > TROI_by[i] && EROI_by[j] < TROI_ty[i]))
+				{
+					exclusived[i].lx = TROI_lx[i];
+					exclusived[i].rx = TROI_rx[i];
+					exclusived[i].ty = TROI_ty[i];
+					exclusived[i].by = TROI_by[i];
+
+					TROI[i]->SetPosXY(X_LEFT, 0);
+					TROI[i]->SetPosXY(X_RIGHT, 0);
+					TROI[i]->SetPosXY(Y_TOP, 0);
+					TROI[i]->SetPosXY(Y_BOTTOM, 0);
+				}
 			}
 		}
-	}
+
+		for (int i = 0; i < m_baseROIRXTmp_idx; i++)
+		{
+			TROI_lx[i] = TROI[i]->GetPosXY(X_LEFT);
+			TROI_rx[i] = TROI[i]->GetPosXY(X_RIGHT);
+			TROI_ty[i] = TROI[i]->GetPosXY(Y_TOP);
+			TROI_by[i] = TROI[i]->GetPosXY(Y_BOTTOM);
+		}
 
 		for (int i = m_baseROIRXTmp_idx; i < MAX_ROI_CNT; i++)
 		{
-			min_x[i] = 0;
-			max_x[i] = 0;
+			TROI[i]->SetPosXY(X_LEFT, 0);
+			TROI[i]->SetPosXY(X_RIGHT, 0);
 		}
 
 		// 최대, 최소, 평균 온도값 찾기
 		for (int k = 0; k < m_SelXPxlChrt_idx; k++)
 		{
-			for (int j = min_y[k]; j <= max_y[k]; j++)
+			for (int j = TROI_ty[k]; j <= TROI_by[k]; j++)
 			{
-				for (int i = min_x[k]; i <= max_x[k]; i++)
+				for (int i = TROI_lx[k]; i <= TROI_rx[k]; i++)
 				{
 					float val = pBuffer[sizeX*j + i];
 
@@ -1215,22 +1242,19 @@ if (BROI_rx != 0 && BROI_by != 0)
 
 	for (int i = 0; i < m_ROICount; i++)
 	{
-		if (m_ResultData.TMin[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+		if (m_ResultData.TMin[i] <= 0 || (TROI_lx[i] == 0 && TROI_ty[i] == 0 && TROI_rx[i] == 0 && TROI_by[i] == 0))
 			m_ResultData.TMin[i] = 0.0f;
 		else if (m_ResultData.TMin[i] < 600)
 			m_ResultData.TMin[i] = 600.0f;
-		if (m_ResultData.TMax[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+		if (m_ResultData.TMax[i] <= 0 || (TROI_lx[i] == 0 && TROI_ty[i] == 0 && TROI_rx[i] == 0 && TROI_by[i] == 0))
 			m_ResultData.TMax[i] = 0.0f;
-		if (m_ResultData.TAvg[i] <= 0 || (min_x[i] == 0 && min_y[i] == 0 && max_x[i] == 0 && max_y[i] == 0))
+		if (m_ResultData.TAvg[i] <= 0 || (TROI_lx[i] == 0 && TROI_ty[i] == 0 && TROI_rx[i] == 0 && TROI_by[i] == 0))
 			m_ResultData.TAvg[i] = 0.0f;
 	}
 
 	// ResultView Spread Condition flag
 	if (m_bSpreadCondition && m_spreadlimitTempr < m_spreadTempr)
 		m_bSpreadCondition = false;
-
-	//if (m_spreadMaxTempr < m_spreadTempr)
-	//	m_spreadMaxTempr = m_spreadTempr;
 
 	// ROI Buffer
 	m_ROI_loop_count = m_SelXPxlChrt_idx;
@@ -1251,6 +1275,11 @@ if (BROI_rx != 0 && BROI_by != 0)
 	m_ROIBuffer[m_ROIBufferCnt++] = m_SelXPxlChrt_idx;
 }
 
+void CPyroSoftMDoc::InitROI(int& dst_lx, int& dst_rx, int& dst_ty, int& dst_by, int src_lx, int src_rx, int src_ty, int src_by)
+{
+	dst_lx = src_lx;	dst_rx = src_rx;
+	dst_ty = src_ty;	dst_by = src_by;
+}
 
 void CPyroSoftMDoc::OnNewDataReady()
 {
@@ -2260,10 +2289,16 @@ void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
 
 	//fprintf(stream, "%.2f\t", m_Transmission);
 
-	for (int i = 0; i < m_ROICount; i++)
-	{
-		//fprintf(stream, "%.2f\t%.2f\t%.2f\t", m_ResultData.TMin[i], m_ResultData.TMax[i], m_ResultData.TAvg[i]);
-		fprintf(stream, "%.2f\t", m_ResultData.TMax[i]);
+	if (EROI[0]->GetCount() > 0) {
+		CheckWriting();
+	}
+	for (int i = 0; i < m_ROICount; i++) {
+		if (bShouldWrite[i] == false) {
+			fprintf(stream, " \t", m_ResultData.TMax[i]);
+		}
+		else {
+			fprintf(stream, "%.2f\t", m_ResultData.TMax[i]);
+		}
 	}
 
 	dummy.Format("");
@@ -2614,10 +2649,11 @@ void CPyroSoftMDoc::OnDeviceLoggingStop()
 void CPyroSoftMDoc::InitROI()
 {
 	for (int i = 0; i < m_ROICount; i++) {
-		min_x[i] = 0;
-		min_y[i] = 0;
-		max_x[i] = 0;
-		max_y[i] = 0;
+		//TROI_lx[i] = 0;
+		//TROI_ty[i] = 0;
+		//TROI_rx[i] = 0;
+		//TROI_by[i] = 0;
+		
 
 		m_ResultData.TMinX[i] = 0;
 		m_ResultData.TMinY[i] = 0;
@@ -3082,46 +3118,95 @@ void CPyroSoftMDoc::SwitchDirection()
 void CPyroSoftMDoc::OnButtonZoomin()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	if (m_ZoomMode<11) 	m_ZoomMode++;
-
-	switch (m_ZoomMode) {
-	case ZOOM_QUATER:
-		m_ZoomRatio = 0.25;
-		break;
-	case ZOOM_HALF:
-		m_ZoomRatio = 0.5;
-		break;
-	case ZOOM_ONE:
-		m_ZoomRatio = 1;
-		break;
-	case ZOOM_TWOTIMES:
-		m_ZoomRatio = 2;
-		break;
-	case ZOOM_THREETIMES:
-		m_ZoomRatio = 3;
-		break;
-	case ZOOM_FOURTIMES:
-		m_ZoomRatio = 4;
-		break;
-	case ZOOM_FIVETIMES:
-		m_ZoomRatio = 5;
-		break;
-	case ZOOM_SIXTIMES:
-		m_ZoomRatio = 6;
-		break;
-	case ZOOM_EIGHTTIMES:
-		m_ZoomRatio = 8;
-		break;
-	case ZOOM_TENTIMES:
-		m_ZoomRatio = 10;
-		break;
-	case ZOOM_FIFTEENTIMES:
-		m_ZoomRatio = 15;
-		break;
-	default:
-		m_ZoomMode = ZOOM_AUTO;
-		m_ZoomRatio = 1;
-		break;
+	
+	int previous = m_ZoomMode;
+	if (previous == ZOOM_AUTO) {		// auto 상태에서 줌 땡기기 버튼을 누름
+		if (zoom_inAuto < 0.25) {
+			m_ZoomRatio = 0.25;
+			m_ZoomMode = ZOOM_QUATER;
+		}
+		else if (0.25 < zoom_inAuto  && zoom_inAuto < 0.5) {
+			m_ZoomRatio = 0.5;
+			m_ZoomMode = ZOOM_HALF;
+		}
+		else if (0.5 < zoom_inAuto && zoom_inAuto < 1) {
+			m_ZoomRatio = 1;
+			m_ZoomMode = ZOOM_ONE;
+		}
+		else if (1 < zoom_inAuto && zoom_inAuto < 2) {
+			m_ZoomRatio = 2;
+			m_ZoomMode = ZOOM_TWOTIMES;
+		}
+		else if (2 < zoom_inAuto && zoom_inAuto < 3) {
+			m_ZoomRatio = 3;
+			m_ZoomMode = ZOOM_THREETIMES;
+		}
+		else if (3 < zoom_inAuto && zoom_inAuto < 4) {
+			m_ZoomRatio = 4;
+			m_ZoomMode = ZOOM_FOURTIMES;
+		}
+		else if (4 < zoom_inAuto && zoom_inAuto < 5) {
+			m_ZoomRatio = 5;
+			m_ZoomMode = ZOOM_FIVETIMES;
+		}
+		else if (5 < zoom_inAuto && zoom_inAuto < 6) {
+			m_ZoomRatio = 6;
+			m_ZoomMode = ZOOM_SIXTIMES;
+		}
+		else if (6 < zoom_inAuto && zoom_inAuto < 8) {
+			m_ZoomRatio = 8;
+			m_ZoomMode = ZOOM_EIGHTTIMES;
+		}
+		else if (8 < zoom_inAuto && zoom_inAuto < 10) {
+			m_ZoomRatio = 10;
+			m_ZoomMode = ZOOM_TENTIMES;
+		}
+		else if (10 < zoom_inAuto && zoom_inAuto < 15) {
+			m_ZoomRatio = 15;
+			m_ZoomMode = ZOOM_FIFTEENTIMES;
+		}
+	}
+	else {
+		if (m_ZoomMode < 11) 	m_ZoomMode++;
+		switch (m_ZoomMode) {
+		case ZOOM_QUATER:
+			m_ZoomRatio = 0.25;
+			break;
+		case ZOOM_HALF:
+			m_ZoomRatio = 0.5;
+			break;
+		case ZOOM_ONE:
+			m_ZoomRatio = 1;
+			break;
+		case ZOOM_TWOTIMES:
+			m_ZoomRatio = 2;
+			break;
+		case ZOOM_THREETIMES:
+			m_ZoomRatio = 3;
+			break;
+		case ZOOM_FOURTIMES:
+			m_ZoomRatio = 4;
+			break;
+		case ZOOM_FIVETIMES:
+			m_ZoomRatio = 5;
+			break;
+		case ZOOM_SIXTIMES:
+			m_ZoomRatio = 6;
+			break;
+		case ZOOM_EIGHTTIMES:
+			m_ZoomRatio = 8;
+			break;
+		case ZOOM_TENTIMES:
+			m_ZoomRatio = 10;
+			break;
+		case ZOOM_FIFTEENTIMES:
+			m_ZoomRatio = 15;
+			break;
+		default:
+			m_ZoomMode = ZOOM_AUTO;
+			m_ZoomRatio = 1;
+			break;
+		}
 	}
 	theApp.m_pPropertyWnd->OnChangedZoomOnly();
 	UpdateAllViews(NULL, 2);
@@ -3131,46 +3216,97 @@ void CPyroSoftMDoc::OnButtonZoomin()
 void CPyroSoftMDoc::OnButtonZoomout()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	if (m_ZoomMode>0) 	m_ZoomMode--;
+	int previous = m_ZoomMode;
 
-	switch (m_ZoomMode) {
-	case ZOOM_AUTO:
-		m_ZoomRatio = 1;
-		break;
-	case ZOOM_QUATER:
-		m_ZoomRatio = 0.25;
-		break;
-	case ZOOM_HALF:
-		m_ZoomRatio = 0.5;
-		break;
-	case ZOOM_ONE:
-		m_ZoomRatio = 1;
-		break;
-	case ZOOM_TWOTIMES:
-		m_ZoomRatio = 2;
-		break;
-	case ZOOM_THREETIMES:
-		m_ZoomRatio = 3;
-		break;
-	case ZOOM_FOURTIMES:
-		m_ZoomRatio = 4;
-		break;
-	case ZOOM_FIVETIMES:
-		m_ZoomRatio = 5;
-		break;
-	case ZOOM_SIXTIMES:
-		m_ZoomRatio = 6;
-		break;
-	case ZOOM_EIGHTTIMES:
-		m_ZoomRatio = 8;
-		break;
-	case ZOOM_TENTIMES:
-		m_ZoomRatio = 10;
-		break;
-	default:
-		m_ZoomMode = ZOOM_AUTO;
-		m_ZoomRatio = 1;
-		break;
+	if (previous == ZOOM_AUTO) 
+	{		// auto 상태에서 줌 땡기기 버튼을 누름
+		if (zoom_inAuto < 0.25) 
+		{
+			m_ZoomRatio = 0.25;
+			m_ZoomMode = ZOOM_QUATER;
+		}
+		else if (0.25 < zoom_inAuto  && zoom_inAuto < 0.5) {
+			m_ZoomRatio = 0.5;
+			m_ZoomMode = ZOOM_HALF;
+		}
+		else if (0.5 < zoom_inAuto && zoom_inAuto < 1) {
+			m_ZoomRatio = 1;
+			m_ZoomMode = ZOOM_ONE;
+		}
+		else if (1 < zoom_inAuto && zoom_inAuto < 2) {
+			m_ZoomRatio = 2;
+			m_ZoomMode = ZOOM_TWOTIMES;
+		}
+		else if (2 < zoom_inAuto && zoom_inAuto < 3) {
+			m_ZoomRatio = 3;
+			m_ZoomMode = ZOOM_THREETIMES;
+		}
+		else if (3 < zoom_inAuto && zoom_inAuto < 4) {
+			m_ZoomRatio = 4;
+			m_ZoomMode = ZOOM_FOURTIMES;
+		}
+		else if (4 < zoom_inAuto && zoom_inAuto < 5) {
+			m_ZoomRatio = 5;
+			m_ZoomMode = ZOOM_FIVETIMES;
+		}
+		else if (5 < zoom_inAuto && zoom_inAuto < 6) {
+			m_ZoomRatio = 6;
+			m_ZoomMode = ZOOM_SIXTIMES;
+		}
+		else if (6 < zoom_inAuto && zoom_inAuto < 8) {
+			m_ZoomRatio = 8;
+			m_ZoomMode = ZOOM_EIGHTTIMES;
+		}
+		else if (8 < zoom_inAuto && zoom_inAuto < 10) {
+			m_ZoomRatio = 10;
+			m_ZoomMode = ZOOM_TENTIMES;
+		}
+		else if (10 < zoom_inAuto && zoom_inAuto < 15) {
+			m_ZoomRatio = 15;
+			m_ZoomMode = ZOOM_FIFTEENTIMES;
+		}
+	}
+	else {
+		if (m_ZoomMode < 11) 	m_ZoomMode--;
+		switch (m_ZoomMode) {
+		case ZOOM_QUATER:
+			m_ZoomRatio = 0.25;
+			break;
+		case ZOOM_HALF:
+			m_ZoomRatio = 0.5;
+			break;
+		case ZOOM_ONE:
+			m_ZoomRatio = 1;
+			break;
+		case ZOOM_TWOTIMES:
+			m_ZoomRatio = 2;
+			break;
+		case ZOOM_THREETIMES:
+			m_ZoomRatio = 3;
+			break;
+		case ZOOM_FOURTIMES:
+			m_ZoomRatio = 4;
+			break;
+		case ZOOM_FIVETIMES:
+			m_ZoomRatio = 5;
+			break;
+		case ZOOM_SIXTIMES:
+			m_ZoomRatio = 6;
+			break;
+		case ZOOM_EIGHTTIMES:
+			m_ZoomRatio = 8;
+			break;
+		case ZOOM_TENTIMES:
+			m_ZoomRatio = 10;
+			break;
+		case ZOOM_FIFTEENTIMES:
+			m_ZoomRatio = 15;
+			break;
+		default:
+			m_ZoomMode = ZOOM_AUTO;
+			m_ZoomRatio = 1;
+			break;
+		}
 	}
 	theApp.m_pPropertyWnd->OnChangedZoomOnly();
 	UpdateAllViews(NULL, 2);
@@ -3191,3 +3327,17 @@ void CPyroSoftMDoc::OnUpdateButtonZoomout(CCmdUI *pCmdUI)
 	if (m_ZoomMode == 0)pCmdUI->Enable(FALSE);
 	else pCmdUI->Enable(TRUE);
 }
+
+void CPyroSoftMDoc::CheckWriting() {
+	for (int k = 0; k < m_ROICount; k++) {		// find target roi in exclusive roi
+		if (m_ResultData.TMax[k] == 0 ||
+			EROI[k]->GetPosXY(X_LEFT) < exclusived[k].lx && EROI[k]->GetPosXY(X_RIGHT) > exclusived[k].rx ||
+			EROI[k]->GetPosXY(Y_TOP) < exclusived[k].ty && EROI[k]->GetPosXY(Y_BOTTOM) > exclusived[k].by) {
+			bShouldWrite[k] = false;
+		}
+		else {
+			bShouldWrite[k] = true;
+		}
+	}
+}
+

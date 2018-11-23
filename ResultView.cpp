@@ -271,8 +271,7 @@ void CResultView::UpdateResult()
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).AddXY(m_XCount, pDoc->m_spreadTempr, ProcessTime, ColorRef(WHITE_COLOR));
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(1).AddXY(m_XCount, pDoc->m_spreadlimitTempr, ProcessTime, ColorRef(0));		// RED
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(2).AddXY(m_XCount, pDoc->m_spreadlimitTempr-0.01, ProcessTime, ColorRef(0));
-					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(3).AddXY(m_XCount, pDoc->m_spreadlimitTempr+0.01, ProcessTime, ColorRef(0));
-					//m_ResultDlg.m_SpreadTabDlg.Invalidate(FALSE);
+					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(3).AddXY(m_XCount, pDoc->m_spreadlimitTempr + 0.01, ProcessTime, ColorRef(0));
 				}
 
 				if (pDoc->m_bSpreadCondition)

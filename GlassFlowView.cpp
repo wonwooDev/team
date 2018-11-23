@@ -207,10 +207,12 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		return;
 
 	int BROI_lx, BROI_rx, BROI_ty, BROI_by;
+	int TROI_lx[MAX_ROI_CNT], TROI_rx[MAX_ROI_CNT], TROI_ty[MAX_ROI_CNT], TROI_by[MAX_ROI_CNT];
 	int EROI_lx[MAX_EROI_CNT], EROI_rx[MAX_EROI_CNT], EROI_ty[MAX_EROI_CNT], EROI_by[MAX_EROI_CNT];
 	//int wnd_sizex, wnd_sizey;
 
 	// CompatibleDC와 CompatibleBitmap을 사용하기 위한 클래스 선언. 
+	// pMemDC에서는 offset 값 적용하지 아니함. 나중에 뿌려줄 때 자동 적용
 	CDC* pMemDC;
 	CBitmap* pBmp;
 	CBitmap* pOld;
@@ -230,12 +232,17 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 
 	pDoc->BROI->InputXYVal(BROI_lx, BROI_rx, BROI_ty, BROI_by);
 
+	for (int i = 0; i < MAX_ROI_CNT; i++)
+		pDoc->TROI[i]->InputXYVal(TROI_lx[i], TROI_rx[i], TROI_ty[i], TROI_by[i]);
+
 	for (int i = 0; i < MAX_EROI_CNT; i++)
 		pDoc->EROI[i]->InputXYVal(EROI_lx[i], EROI_rx[i], EROI_ty[i], EROI_by[i]);
 
 	// window size
 	wnd_sizex = cr.Width();
 	wnd_sizey = cr.Height();
+
+	pDoc->zoom_inAuto = m_bmp_zoom;
 
 	// get bitmap from DDAQ
 	if (!theApp.DDAQ_IRDX_IMAGE_GetBitmap(pDoc->m_hIRDX_Doc, &m_bmp_isize_x, &m_bmp_isize_y, &pBits, &pBitmapInfo))
@@ -346,10 +353,10 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		pMemDC->SetTextColor(color);				//텍스트 칼라 설정
 
 		for (int i = 0; i < pDoc->m_ROICount; i++) {
-			if (pDoc->max_x[i] == 0)
+			if (TROI_rx[i] == 0)
 				continue;
 			str_tmp.Format("#%d", i + 1);
-			pMemDC->TextOutA(pDoc->min_x[i] * m_bmp_zoom - m_posX, pDoc->min_y[i] * m_bmp_zoom - m_posY, str_tmp);
+			pMemDC->TextOutA(TROI_lx[i] * m_bmp_zoom - m_posX, TROI_ty[i] * m_bmp_zoom - m_posY, str_tmp);
 		}
 
 		pMemDC->SelectObject(pOldPen);
@@ -367,10 +374,6 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		if (!m_isBaseRectDone && BROI_rx != 0)		// 처음 실행 시 Base ROI 존재 시
 		{
 			m_isBaseRectDone = true;
-
-			pMemDC->Rectangle(
-				BROI_lx * m_bmp_zoom, BROI_ty * m_bmp_zoom,
-				BROI_rx * m_bmp_zoom, BROI_by * m_bmp_zoom);
 		}
 		else if (!m_isBaseRectDone && BROI_lx != 0)	// Base ROI 그려지고 있을 때
 		{
@@ -379,7 +382,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 				(ux - 1) * m_bmp_zoom - m_posX, (uy - 1) * m_bmp_zoom - m_posY);
 
 			InvalidateRect(&m_OBaseRect, 0);
-			pDoc->BROI->SelectObj(&m_CBaseRect, ux - 1, uy - 1, m_XY, m_bmp_zoom, ClickedDistance);
+			pDoc->BROI->SelectObj(&m_CBaseRect, ux - 1, uy - 1, m_XY, m_bmp_ofs_x - m_posX, m_bmp_ofs_y - m_posY, m_bmp_zoom, ClickedDistance);
 			m_OBaseRect = m_CBaseRect;
 			InvalidateRect(&m_CBaseRect, 0);
 		}
@@ -405,13 +408,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		if (!pDoc->EROI[0]->GetDrawDone() && EROI_rx[0] != 0)		// 처음 실행 시 Base ROI 존재 시
 		{
 			for (int i = 0; i < pDoc->EROI[0]->GetCount(); i++)
-			{
 				pDoc->EROI[i]->SetDrawDone(TRUE);
-
-				pMemDC->Rectangle(
-					EROI_lx[i] * m_bmp_zoom, EROI_ty[i] * m_bmp_zoom,
-					EROI_rx[i] * m_bmp_zoom, EROI_by[i] * m_bmp_zoom);
-			}
 		}
 		else if (pDoc->EROI[0]->GetCount() < 5 && !pDoc->EROI[pDoc->EROI[0]->GetCount()]->GetDrawDone() && EROI_lx[pDoc->EROI[0]->GetCount()] != 0)	// Exclusive ROI 그려지고 있을 때
 		{
@@ -420,8 +417,8 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 				(ux - 1) * m_bmp_zoom - m_posX, (uy - 1) * m_bmp_zoom - m_posY);
 
 			InvalidateRect(&m_OBaseRect, 0);
-			pDoc->EROI[pDoc->EROI[0]->GetCount()]->SelectObj(&m_CBaseRect, ux - 1, uy - 1, m_XY, m_bmp_zoom, ClickedDistance);
-			m_OBaseRect = m_CBaseRect;
+			pDoc->EROI[pDoc->EROI[0]->GetCount()]->SelectObj(&m_CBaseRect, ux - 1, uy - 1, m_XY, m_bmp_ofs_x - m_posX, m_bmp_ofs_y - m_posY, m_bmp_zoom, ClickedDistance);
+			m_OBaseRect = m_CBaseRect; 
 			InvalidateRect(&m_CBaseRect, 0);
 		}
 
@@ -439,8 +436,8 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		pMemDC->SelectObject(pOldBrush);
 	}
 
-	if (1)	// ROI 영역
-		RectROIDraw(pMemDC, 1, pDoc->min_x, pDoc->min_y, pDoc->max_x, pDoc->max_y, pDoc->m_ROICount, RGB(255, 255, 255));
+	// ROI 영역
+	RectROIDraw(pMemDC, 1, TROI_lx, TROI_ty, TROI_rx, TROI_by, pDoc->m_ROICount, RGB(255, 255, 255));
 
 	if (pDoc->m_minPointerShow)	// 최소 온도 값
 		CrossROIDraw(pMemDC, pDoc->m_ResultData.TMinX, pDoc->m_ResultData.TMinY, pDoc->m_ResultData.TMin, pDoc->m_ROICount, MAXMIN_POINT, RGB(255, 255, 255), RGB(0, 0, 255), RGB(0, 0, 0));
@@ -554,7 +551,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 	delete pBmp;
 }
 
-void CGlassFlowView::RectROIDraw(CDC* pMemDC, int pWidht, int min_x[], int min_y[], int max_x[], int max_y[], int loop_count, COLORREF rect_color)
+void CGlassFlowView::RectROIDraw(CDC* pMemDC, int pWidht, int ROI_lx[], int ROI_ty[], int ROI_rx[], int ROI_by[], int loop_count, COLORREF rect_color)
 {
 	CPen pen(PS_SOLID, pWidht, rect_color);
 	CPen* pOldPen = pMemDC->SelectObject(&pen);
@@ -562,7 +559,7 @@ void CGlassFlowView::RectROIDraw(CDC* pMemDC, int pWidht, int min_x[], int min_y
 	pMemDC->SetROP2(R2_COPYPEN);
 
 	for (int i = 0; i < loop_count; i++)
-		pMemDC->Rectangle(min_x[i] * m_bmp_zoom - m_posX, min_y[i] * m_bmp_zoom + 1 - m_posY, max_x[i] * m_bmp_zoom - m_posX, max_y[i] * m_bmp_zoom + 1 - m_posY);
+		pMemDC->Rectangle(ROI_lx[i] * m_bmp_zoom - m_posX, ROI_ty[i] * m_bmp_zoom + 1 - m_posY, ROI_rx[i] * m_bmp_zoom - m_posX, ROI_by[i] * m_bmp_zoom + 1 - m_posY);
 
 	pMemDC->SelectObject(pOldPen);
 }
@@ -583,7 +580,7 @@ void CGlassFlowView::DotROIDraw(CDC* pMemDC, int tempX[], int tempY[], float tem
 	
 	for (int i = 0; i < loop_count; i++)
 	{
-		if ((tempX[i] == 0 && tempY[i] == 0) || (pDoc->max_x[i] == 0 && pDoc->max_y[i] == 0))
+		if ((tempX[i] == 0 && tempY[i] == 0) || (pDoc->TROI[i]->GetPosXY(X_RIGHT) == 0 && pDoc->TROI[i]->GetPosXY(Y_BOTTOM) == 0))
 			continue;
 
 		pMemDC->Rectangle(tempX[i] * m_bmp_zoom, tempY[i] * m_bmp_zoom,
@@ -734,7 +731,7 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 	unsigned short	ZMode = DDAQ_ZMODE_DIRECT;
 	float			Zoom = 1.0f;
 
-	theApp.DDAQ_IRDX_IMAGE_GetZoom(pDoc->m_hIRDX_Doc, &ZMode, &Zoom);
+	theApp.DDAQ_IRDX_IMAGE_GetZoom(pDoc->m_hIRDX_Doc, &ZMode, &Zoom); 
 	if (ZMode > DDAQ_ZMODE_DIRECT)
 	{
 		fx /= Zoom;
@@ -770,22 +767,35 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 				s.Format(IDS_FMT_PIXEL_POINT_Cursor, ux - 1, uy - 1, DataPoint);
 			}
 
-			if (pDoc->BROI->stretch->GetCatchLNP(LEFT_LINE))
+			if (pDoc->BROI->stretch->GetCatchLNP(LEFT_LINE) || pDoc->BROI->stretch->GetCatchLNP(RIGHT_LINE))
 			{
-				ClickedDistance = pDoc->BROI->stretch->Stretch(LEFT_LINE, ClickedDistance, ux, uy);
+				if (pDoc->BROI->stretch->GetCatchLNP(LEFT_LINE))
+					ClickedDistance = pDoc->BROI->stretch->Stretch(LEFT_LINE, ClickedDistance, ux, uy);
+				else
+					ClickedDistance = pDoc->BROI->stretch->Stretch(RIGHT_LINE, ClickedDistance, ux, uy);
+
+				InvalidateRect(&OldRecT, 0);
+
+				pDoc->BROI->stretch->InvalidateRegion(&CurrentRect, HORIZONTALITY, 0.1, 0.2, point, m_bmp_ofs_x - m_posX, m_bmp_ofs_y - m_posY, m_bmp_zoom, ClickedDistance);
+
+				OldRecT = CurrentRect;
+				InvalidateRect(&CurrentRect, 0);
 			}
-			else if (pDoc->BROI->stretch->GetCatchLNP(RIGHT_LINE))
+			else if (pDoc->BROI->stretch->GetCatchLNP(TOP_LINE) || pDoc->BROI->stretch->GetCatchLNP(BOTTOM_LINE))
 			{
-				ClickedDistance = pDoc->BROI->stretch->Stretch(RIGHT_LINE, ClickedDistance, ux, uy);
+				if (pDoc->BROI->stretch->GetCatchLNP(TOP_LINE))
+					ClickedDistance = pDoc->BROI->stretch->Stretch(TOP_LINE, ClickedDistance, ux, uy);
+				else
+					ClickedDistance = pDoc->BROI->stretch->Stretch(BOTTOM_LINE, ClickedDistance, ux, uy);
+
+				InvalidateRect(&OldRecT, 0);
+
+				pDoc->BROI->stretch->InvalidateRegion(&CurrentRect, VERTICALITY, 0.1, 0.2, point, m_bmp_ofs_x - m_posX, m_bmp_ofs_y - m_posY, m_bmp_zoom, ClickedDistance);
+
+				OldRecT = CurrentRect;
+				InvalidateRect(&CurrentRect, 0);
 			}
-			else if (pDoc->BROI->stretch->GetCatchLNP(TOP_LINE))
-			{
-				ClickedDistance = pDoc->BROI->stretch->Stretch(TOP_LINE, ClickedDistance, ux, uy);
-			}
-			else if (pDoc->BROI->stretch->GetCatchLNP(BOTTOM_LINE))
-			{
-				ClickedDistance = pDoc->BROI->stretch->Stretch(BOTTOM_LINE, ClickedDistance, ux, uy);
-			}
+			
 			else if (m_PointMove_flag)				// POI 이동
 			{
 				int tempX, tempY;
@@ -836,8 +846,8 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 				temPosY = m_posY + (ClickedDistance.y - point.y);
 
 				// 왼쪽 위 방향 이동 제한
-				if (temPosX < ((m_bmp_size_x - wnd_sizex) / 2)*-1)	temPosX = ((m_bmp_size_x - wnd_sizex) / 2)*-1;
-				if (temPosY < ((m_bmp_size_y - wnd_sizey) / 2)*-1)	temPosY = ((m_bmp_size_y - wnd_sizey) / 2)*-1;
+				if (temPosX < ((m_bmp_size_x - wnd_sizex) / 2) * -1)	temPosX = ((m_bmp_size_x - wnd_sizex) / 2) * -1;
+				if (temPosY < ((m_bmp_size_y - wnd_sizey) / 2) * -1)	temPosY = ((m_bmp_size_y - wnd_sizey) / 2) * -1;
 
 				// 오른쪽 아래 방향 이동 제한
 				if (temPosX >((m_bmp_size_x - wnd_sizex) / 2)) { temPosX = (m_bmp_size_x - wnd_sizex) / 2; }
@@ -859,34 +869,34 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 				else if (ux > 455 && uy >= 17)		// 마우스 포인터가 화면 오른쪽으로 치우쳤을 시
 					InvalidateTextRect(point, -(80 + (pDoc->m_Font_Size - 1) * 8), -(20 + (pDoc->m_Font_Size - 1) * 3), 20, 0);
 				else
+					InvalidateTextRect(point, 0, -(20 + (pDoc->m_Font_Size - 1) * 3), 80 + ((pDoc->m_Font_Size - 1) * 8), 30);
+				
+				CPoint BROI_CPoint;
+				double xPos, yPos;
+				double fixed_factor = 0.05, dynamic_factor = 0.2;
+
+				if (pDoc->BROI->stretch->GetCatchLNP(LEFT_LINE) || pDoc->BROI->stretch->GetCatchLNP(RIGHT_LINE))
 				{
-					CPoint BROI_CPoint;
-					int spare_reg = 8;
+					InvalidateRect(&OldRecT, 0);
 
-					if (pDoc->BROI->stretch->GetCatchLNP(LEFT_LINE) || pDoc->BROI->stretch->GetCatchLNP(RIGHT_LINE))
-					{
-						BROI_CPoint.x = point.x;
-						BROI_CPoint.y = BROI_ty * Zoom * m_bmp_zoom + m_bmp_ofs_y + m_posY;
-
-						InvalidateTextRect(BROI_CPoint, -spare_reg, -spare_reg, spare_reg, abs(BROI_ty - BROI_by) * Zoom * m_bmp_zoom + spare_reg);
-					}
-					else if (pDoc->BROI->stretch->GetCatchLNP(TOP_LINE) || pDoc->BROI->stretch->GetCatchLNP(BOTTOM_LINE))
-					{
-						BROI_CPoint.x = BROI_lx * Zoom * m_bmp_zoom + m_bmp_ofs_x + m_posX;;
-						BROI_CPoint.y = point.y;
-
-						InvalidateTextRect(BROI_CPoint, -spare_reg, -spare_reg, abs(BROI_rx - BROI_lx) * Zoom * m_bmp_zoom + spare_reg, spare_reg);
-					}
-
-					InvalidateTextRect(point, 0, -(20 + (pDoc->m_Font_Size - 1) * 3), 80 + ((pDoc->m_Font_Size - 1) * 8), 30);
+					
+					pDoc->EROI[pDoc->EROI[0]->GetCount()]->SelectObj(&m_CBaseRect, ux - 1, uy - 1, m_XY, m_bmp_ofs_x - m_posX, m_bmp_ofs_y - m_posY, m_bmp_zoom, ClickedDistance);
+					OldRecT = CurrentRect;
+					InvalidateRect(&CurrentRect, 0);
 				}
-				/*				else
-					InvalidateTextRect(point, 0, -(20 + (pDoc->m_Font_Size - 1) * 3), 80 + ((pDoc->m_Font_Size - 1) * 8), 30);
-					*/
+				else if (pDoc->BROI->stretch->GetCatchLNP(TOP_LINE) || pDoc->BROI->stretch->GetCatchLNP(BOTTOM_LINE))
+				{
+					BROI_CPoint.x = BROI_lx * m_bmp_zoom ;
+					BROI_CPoint.y = point.y;
 
-				if (m_isPoint_clicked == true) {	// 마우스 옆 텍스트처럼 사분면별로 위치가 바뀐다면 따로 처리 필요
+					xPos = BROI_CPoint.x * dynamic_factor - m_bmp_ofs_x + m_posX;
+					yPos = BROI_CPoint.y * dynamic_factor;
+
+					InvalidateTextRect(BROI_CPoint, -xPos, -yPos, abs(BROI_rx - BROI_lx) * m_bmp_zoom * (1 + fixed_factor), yPos);
+				}
+
+				if (m_isPoint_clicked == true) 	// 마우스 옆 텍스트처럼 사분면별로 위치가 바뀐다면 따로 처리 필요
 					InvalidatePOIRect(point, -(10 + pDoc->m_POIArr[m_point_idx].x), -(10 + pDoc->m_POIArr[m_point_idx].y), 150 + ((pDoc->m_Font_Size - 1) * 8), 40 + ((pDoc->m_Font_Size - 1) * 4));
-				}
 			}
 		}
 	}
@@ -903,7 +913,7 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 	CView::OnMouseMove(nFlags, point);
 }
 
-void CGlassFlowView::InvalidateTextRect(CPoint point, int x1, int y1, int x2, int y2)
+void CGlassFlowView::InvalidateTextRect(CPoint point, double x1, double y1, double x2, double y2)
 {
 	///마우스 옆 텍스트를 표시해주기위한 Rect Invalidate
 	InvalidateRect(&OldRecT, 0);

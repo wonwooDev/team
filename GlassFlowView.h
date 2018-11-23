@@ -83,8 +83,8 @@ protected: // serialization에서만 만들어집니다.
 
 	void		CalculatePoint(CPoint point);
 	void		InvalidatePOIRect(CPoint point, int x1, int y1, int x2, int y2);
-	void		InvalidateTextRect(CPoint point, int x1, int y1, int x2, int y2);
-	void		RectROIDraw(CDC* pMemDC, int pWidht, int min_x[], int min_y[], int max_x[], int max_y[], int loop_count, COLORREF rect_color);
+	void		InvalidateTextRect(CPoint point, double x1, double y1, double x2, double y2);
+	void		RectROIDraw(CDC* pMemDC, int pWidht, int ROI_lx[], int ROI_ty[], int ROI_rx[], int ROI_by[], int loop_count, COLORREF rect_color);
 	void		DotROIDraw(CDC* pMemDC, int tempX[], int tempY[], float temp[], int loop_count,
 		int select_idx, COLORREF back_color, COLORREF front_color, COLORREF select_color);
 	void		CrossROIDraw(CDC* pMemDC, int tempX[], int tempY[], float temp[], int loop_count,

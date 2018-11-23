@@ -110,6 +110,13 @@ typedef struct
 	int by;
 } EXCLUSIVE_ROI;
 
+typedef struct {
+	int lx;
+	int rx;
+	int ty;
+	int by;
+}EROI_PROCESSED;
+
 
 class CPyroSoftMDoc : public CDocument
 {
@@ -156,16 +163,18 @@ protected: // serialization에서만 만들어집니다.
 	void				CloseRHKData();
 	void				CalRHKTotalDist();
 	void				RHKStatusInf();
+	void				InitROI(int& dst_lx, int& dst_rx, int& dst_ty, int& dst_by, int src_lx, int src_rx, int src_ty, int src_by);
 	inline void			SearchTemperature(int k, float *pBuffer, int *pixelCount, int *sumTemp, bool *isArrFirst);
 
 	// 특성입니다.
 public:
 	COOI*				OOI;
 	CBROI*				BROI;
-	CTROI*				ROI;
-	CLROI*				LOI;
-	CPROI*				POI;
+	CTROI*				TROI[MAX_ROI_CNT];
 	CEROI*				EROI[MAX_EROI_CNT];
+	CLROI*				LROI;
+	CPROI*				PROI;
+
 
 	HWND				m_GFV_Hwnd;
 
@@ -328,6 +337,7 @@ public:
 
 	int					m_ZoomMode;
 	float				m_ZoomRatio;
+	float				zoom_inAuto;
 
 	int					m_BROI_minSize;
 
@@ -367,10 +377,6 @@ public:
 	float				m_ZoneTemp[MAX_ZONE];
 	float				m_ZoneEmissivity[MAX_ZONE];
 
-	int					max_x[MAX_ROI_CNT];
-	int					min_x[MAX_ROI_CNT];
-	int					max_y[MAX_ROI_CNT];
-	int					min_y[MAX_ROI_CNT];
 	int					temptt[MAX_ROI_CNT];
 	int					m_ty_pxl_avg[MAX_ROI_CNT][MAX_PIXEL_AVG_NUM];
 	int					m_by_pxl_avg[MAX_ROI_CNT][MAX_PIXEL_AVG_NUM];
@@ -378,6 +384,8 @@ public:
 	int					m_rx_pxl_avg[MAX_ROI_CNT][MAX_PIXEL_AVG_NUM];
 
 	float				POI_TemperatureArray[MAX_POI_NUM];
+	bool				bShouldWrite[MAX_ROI_CNT];
+	EROI_PROCESSED		exclusived[MAX_EROI_CNT];
 
 	// 작업입니다.
 public:
@@ -416,6 +424,7 @@ public:
 	void				FSetFrequency();
 	void				IRDXUpdate();
 	void				SwitchDirection();
+	void				CheckWriting();
 
 	// 재정의입니다.
 public:

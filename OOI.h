@@ -14,6 +14,8 @@
 #define RIGHT_LINE				2
 #define TOP_LINE				3
 #define BOTTOM_LINE				4
+#define HORIZONTALITY			5
+#define VERTICALITY				6
 
 ////////////////////	Strategy Pattern	//////////////////////
 class COOI;
@@ -87,6 +89,7 @@ public:
 	virtual POINT Stretch(int line_case, POINT clkDistance, unsigned short ux, unsigned short uy) = 0;
 	virtual bool GetCatchLNP(int LNP_case) = 0;
 	virtual bool SetCatchLNP(int LNP_case, bool flag) = 0;
+	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance) = 0;
 };
 
 class CLineStretch : public CStretch
@@ -100,6 +103,7 @@ public:
 	virtual POINT Stretch(int line_case, POINT clkDistance, unsigned short ux, unsigned short uy);
 	virtual bool GetCatchLNP(int line_case);
 	virtual bool SetCatchLNP(int line_case, bool flag);
+	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance);
 };
 
 class CPointStretch : public CStretch
@@ -113,6 +117,7 @@ public:
 	virtual POINT Stretch(int point_case, POINT clkDistance, unsigned short ux, unsigned short uy);
 	virtual bool GetCatchLNP(int point_case);
 	virtual bool SetCatchLNP(int point_case, bool flag);
+	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance);
 };
 
 class CStretchNoway : public CStretch
@@ -125,6 +130,7 @@ public:
 	virtual POINT Stretch(int caseNoway, POINT clkDistance, unsigned short ux, unsigned short uy);
 	virtual bool GetCatchLNP(int caseNoway);
 	virtual bool SetCatchLNP(int caseNoway, bool flag);
+	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance);
 };
 
 
@@ -187,8 +193,8 @@ public:
 	virtual int		GetMinSize();
 	virtual	bool	SetMinSize(int val);
 
-	virtual bool	SelectObj(RECT* CBaseRect, unsigned short ux, unsigned short uy, CPoint m_XY, float m_bmp_zoom, POINT ClickedDistance);
-	virtual bool	SetInvaliRect(RECT* CBaseRect, int quadrant, int sx, int sy, int ex, int ey, CPoint m_XY, float m_bmp_zoom, POINT ClickedDistance);
+	virtual bool	SelectObj(RECT* CBaseRect, unsigned short ux, unsigned short uy, CPoint m_XY, int offs_x, int offs_y, float m_bmp_zoom, POINT ClickedDistance);
+	virtual bool	SetInvaliRect(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int offs_x, int offs_y, float m_bmp_zoom, POINT ClickedDistance);
 	virtual	void	InitXYPos();
 	virtual void	InputXYVal(int& lx, int& rx, int& ty, int& by);
 };

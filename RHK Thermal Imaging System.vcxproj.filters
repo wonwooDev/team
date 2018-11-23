@@ -1,0 +1,443 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="소스 파일\Scale">
+      <UniqueIdentifier>{4a38ebdd-48f7-41e2-bfad-4814ca0db025}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Result">
+      <UniqueIdentifier>{16b2d89c-08aa-497f-84fc-b33fc02b76e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Property">
+      <UniqueIdentifier>{5643ff06-57dc-4d90-905d-b1bc44d6d99a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Display">
+      <UniqueIdentifier>{631c931a-3849-420c-95aa-2ccc83f08476}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\PyroSoftM/Doc">
+      <UniqueIdentifier>{179c9c86-6ebd-4473-b2e5-1b6b48e2ea8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\The others">
+      <UniqueIdentifier>{2e1e4984-afd6-4d7b-8c20-c3d75828e188}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\TeeChart">
+      <UniqueIdentifier>{2eaaff17-cf84-424e-b4bf-34794014ac25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Frame">
+      <UniqueIdentifier>{25679dca-9b79-479e-bf60-2f64008147d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\DataGridView">
+      <UniqueIdentifier>{437e9de5-b13e-467d-8641-242589cbb5fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Result\Tab Control">
+      <UniqueIdentifier>{c69198a8-d41f-4ff5-a853-8a55eb341c77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\ROI_Grid">
+      <UniqueIdentifier>{ec442f87-5b4b-445c-b4b8-46afa46e7a4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Logo">
+      <UniqueIdentifier>{1fb08269-4f56-4dff-bda4-b9e966b3b62a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\OOI">
+      <UniqueIdentifier>{d8935048-c50f-4d0a-8e1e-a8643f4a4385}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\TeeChart">
+      <UniqueIdentifier>{90fe491b-dfe7-4fca-97de-55e9ae8debe5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="PyroSoftM.reg" />
+    <None Include="res\output_wnd.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\output_wnd_hc.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\properties_wnd.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\properties_wnd_hc.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\properties.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\properties_hc.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="UserImages.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\PyroSoftM.rc2">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\PyroSoftMDoc.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\PyroSoftM.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\Toolbar.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\Toolbar256.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\mainfram.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\dataacq_.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\icon1.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\WWS_icon.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\icon2.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\pyro.ico">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\toolbar1.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\bmp00001.bmp">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="POINTER.cur">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\cursor1.cur">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\cursor2.cur">
+      <Filter>리소스 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PyroSoftM.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ChildFrm.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PyroSoftMDoc.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GlassFlowView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesWnd.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ScaleWnd.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ScaleDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DataMsgThread.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ResultDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSocket.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgAddNewDevice.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatPropertyGridProperty.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxPropertyGridProperty.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyGridCtrl.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ResultView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MemDC.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleTip.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CellRange.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GridCell.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GridCellBase.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GridCtrl.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GridDropTarget.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InPlaceEdit.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MaxTabDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MinTapDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AvgTabDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CoefficientDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="msflexgrid1.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ROIGridDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ROIGridView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ZoneInfDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ScaleView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LogoWnd.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LogoDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StepDiffDlg.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="OOI.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="tchart1.h">
+      <Filter>헤더 파일\TeeChart</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultDlg.cpp">
+      <Filter>소스 파일\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultView.cpp">
+      <Filter>소스 파일\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="ChildFrm.cpp">
+      <Filter>소스 파일\Frame</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>소스 파일\Frame</Filter>
+    </ClCompile>
+    <ClCompile Include="ScaleDlg.cpp">
+      <Filter>소스 파일\Scale</Filter>
+    </ClCompile>
+    <ClCompile Include="ScaleWnd.cpp">
+      <Filter>소스 파일\Scale</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertyGridCtrl.cpp">
+      <Filter>소스 파일\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesWnd.cpp">
+      <Filter>소스 파일\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBoxPropertyGridProperty.cpp">
+      <Filter>소스 파일\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatPropertyGridProperty.cpp">
+      <Filter>소스 파일\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="GlassFlowView.cpp">
+      <Filter>소스 파일\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="PyroSoftMDoc.cpp">
+      <Filter>소스 파일\PyroSoftM/Doc</Filter>
+    </ClCompile>
+    <ClCompile Include="PyroSoftM.cpp">
+      <Filter>소스 파일\PyroSoftM/Doc</Filter>
+    </ClCompile>
+    <ClCompile Include="DataMsgThread.cpp">
+      <Filter>소스 파일\The others</Filter>
+    </ClCompile>
+    <ClCompile Include="DataSocket.cpp">
+      <Filter>소스 파일\The others</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgAddNewDevice.cpp">
+      <Filter>소스 파일\The others</Filter>
+    </ClCompile>
+    <ClCompile Include="valuelists.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="valuelist.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="tchart.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="series.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="fastlineseries.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="axis.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="tchart1.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleTip.cpp">
+      <Filter>소스 파일\DataGridView</Filter>
+    </ClCompile>
+    <ClCompile Include="GridCell.cpp">
+      <Filter>소스 파일\DataGridView</Filter>
+    </ClCompile>
+    <ClCompile Include="GridCellBase.cpp">
+      <Filter>소스 파일\DataGridView</Filter>
+    </ClCompile>
+    <ClCompile Include="GridCtrl.cpp">
+      <Filter>소스 파일\DataGridView</Filter>
+    </ClCompile>
+    <ClCompile Include="GridDropTarget.cpp">
+      <Filter>소스 파일\DataGridView</Filter>
+    </ClCompile>
+    <ClCompile Include="InPlaceEdit.cpp">
+      <Filter>소스 파일\DataGridView</Filter>
+    </ClCompile>
+    <ClCompile Include="MaxTabDlg.cpp">
+      <Filter>소스 파일\Result\Tab Control</Filter>
+    </ClCompile>
+    <ClCompile Include="AvgTabDlg.cpp">
+      <Filter>소스 파일\Result\Tab Control</Filter>
+    </ClCompile>
+    <ClCompile Include="MinTapDlg.cpp">
+      <Filter>소스 파일\Result\Tab Control</Filter>
+    </ClCompile>
+    <ClCompile Include="CoefficientDlg.cpp">
+      <Filter>소스 파일\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="ROIGridDlg.cpp">
+      <Filter>소스 파일\ROI_Grid</Filter>
+    </ClCompile>
+    <ClCompile Include="ROIGridView.cpp">
+      <Filter>소스 파일\ROI_Grid</Filter>
+    </ClCompile>
+    <ClCompile Include="ZoneInfDlg.cpp">
+      <Filter>소스 파일\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="ScaleView.cpp">
+      <Filter>소스 파일\Scale</Filter>
+    </ClCompile>
+    <ClCompile Include="msflexgrid1.cpp">
+      <Filter>소스 파일\The others</Filter>
+    </ClCompile>
+    <ClCompile Include="LogoDlg.cpp">
+      <Filter>소스 파일\Logo</Filter>
+    </ClCompile>
+    <ClCompile Include="LogoWnd.cpp">
+      <Filter>소스 파일\Logo</Filter>
+    </ClCompile>
+    <ClCompile Include="StepDiffDlg.cpp">
+      <Filter>소스 파일\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="OOI.cpp">
+      <Filter>소스 파일\OOI</Filter>
+    </ClCompile>
+    <ClCompile Include="lineseries.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="pen.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="pointer.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="brush.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="gradient.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="subgradient.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+    <ClCompile Include="teeshadow.cpp">
+      <Filter>소스 파일\TeeChart</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RHK Thermal Imaging System.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\DIASDAQ\DIASDAQ.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\SIB\POSCO 개발 관련\마우스 회전 이미지.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\..\..\SIB\POSCO 개발 관련\마우스 회전 이미지.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\RHK.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\GTCLogo.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\SamsungLogo.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\ProgramName.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\bmp00002.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\bmp00003.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

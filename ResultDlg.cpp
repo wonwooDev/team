@@ -307,8 +307,6 @@ void CResultDlg::OnSize(UINT nType, int cx, int cy)
 	m_SpreadTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height()*0.9 - 10, SWP_NOZORDER);
 	//m_AvgTabDlg.SetWindowPos(NULL, 5, 25, rect.Width() - 12, rect.Height()*0.9 - 10, SWP_NOZORDER);
 
-	//m_SpreadTabDlg.spread_static.SetWindowPos(NULL, rect.Width()*0.1, rect.Height()*0.85-20, rect.Width()*0.2, 15, SWP_NOZORDER);
-	//m_SpreadTabDlg.spread_edit.SetWindowPos(NULL, rect.Width()*0.1, rect.Height()*0.85 , rect.Width()*0.8, 20, SWP_NOZORDER);
 	m_SpreadTabDlg.spread_static.SetWindowPos(NULL, rect.Width()*0.1, rect.Height()*0.85 - 20, rect.Width()*0.6, 15, SWP_NOZORDER);
 	m_SpreadTabDlg.spread_edit.SetWindowPos(NULL, rect.Width()*0.35, rect.Height()*0.81, rect.Width()*0.6, 40, SWP_NOZORDER);
 
@@ -344,7 +342,12 @@ void CResultDlg::OnBnClickedClearGraph()
 		m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
 		//m_AvgTabDlg.m_Avg_Chart.Series(i).Clear();
 	}
-	m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
+	//m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
+	for (int k = 0; k < m_SpreadTabDlg.m_Spread_Chart.GetSeriesCount(); k++) {
+		m_SpreadTabDlg.m_Spread_Chart.Series(k).Clear();
+	}
+
+	//m_SpreadTabDlg.m_Spread_Chart.Series(0).
 
 	pDoc->m_bSpreadCondition = true;
 	pDoc->m_ChartFlag = false;
