@@ -375,6 +375,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		{
 			m_isBaseRectDone = true;
 		}
+
 		else if (!m_isBaseRectDone && BROI_lx != 0)	// Base ROI 그려지고 있을 때
 		{
 			pMemDC->Rectangle(
