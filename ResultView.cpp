@@ -206,10 +206,16 @@ void CResultView::UpdateResult()
 
 	if (pDoc->m_OpenMode != 1)			// Online, Simulation 인 경우에만
 	{
-		if(!(pDoc->m_ZoneInfoEnable))
+		if (!(pDoc->m_ZoneInfoEnable)) {
 			m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
+		}
 		else
 		{
+			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).Clear();
+			for (int k = 0; k < 32; k++) {
+				m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).AddXY(k, pDoc->m_ZoneTemp[k], NULL, ColorRef(WHITE_COLOR));
+			}
+
 			if (theApp.m_bLoggingRunning)
 			{
 				m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
@@ -249,6 +255,7 @@ void CResultView::UpdateResult()
 			for (int i = 0; i < pDoc->m_ROICount; i++)
 				m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
 
+			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).Clear();
 			m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
 
 			pDoc->m_ChartFlag = false;
@@ -263,7 +270,6 @@ void CResultView::UpdateResult()
 				{
 					if (pDoc->m_ResultData.TMax[i] != 0.0f)
 						m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TMax[i], ProcessTime, ColorRef(i));
-
 				}
 
 				if (pDoc->m_bCheckSpread) 
@@ -411,6 +417,10 @@ void CResultView::InitROIData()
 		m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).SetColor(ColorRef(i));
 
 	}
+
+	// Zone temperature add by DK, 181210
+	m_ResultDlg.m_MaxTabDlg.m_Max_Chart.AddSeries(0);
+	m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).SetColor(ColorRef(WHITE_COLOR));
 
 	// Create the Spread Chart 
 	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
