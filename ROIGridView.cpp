@@ -110,8 +110,8 @@ void CROIGridView::InitStatusData()
 	m_ROIGridDlg.m_ROI_GridView.put_Row(1);								// trace row
 	m_ROIGridDlg.m_ROI_GridView.put_Cols(pDoc->m_ROICount + 2);
 
-	//colWidth = (rectClient.Width() - 73) * 15 / pDoc->m_ROICount;
-	colWidth = (rectClient.Width() * 15) / pDoc->m_ROICount + 1;
+	colWidth = (rectClient.Width() - 30) * 15 / pDoc->m_ROICount+1;
+	//colWidth = (rectClient.Width() * 15) / pDoc->m_ROICount + 1;
 
 	SetColProperty(0, pDoc->m_ROICount + 1, "ROI #", colWidth, 0);
 	m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(0, pDoc->m_ROICount + 1, _T("Spread"));

@@ -206,10 +206,15 @@ void CResultView::UpdateResult()
 
 	if (pDoc->m_OpenMode != 1)			// Online, Simulation 인 경우에만
 	{
-		if(!(pDoc->m_ZoneInfoEnable))
+		if (!(pDoc->m_ZoneInfoEnable)) {
 			m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
+			// Zone information disable되면 차트 클리어 필요함 by DK
+		}
 		else
 		{
+			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).Clear();
+			DrawZoneInformation();
+
 			if (theApp.m_bLoggingRunning)
 			{
 				m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
@@ -249,6 +254,7 @@ void CResultView::UpdateResult()
 			for (int i = 0; i < pDoc->m_ROICount; i++)
 				m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).Clear();
 
+			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).Clear();
 			m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).Clear();
 
 			pDoc->m_ChartFlag = false;
@@ -409,6 +415,10 @@ void CResultView::InitROIData()
 
 	}
 
+	// Zone temperature add by DK, 181210
+	m_ResultDlg.m_MaxTabDlg.m_Max_Chart.AddSeries(0);
+	m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).SetColor(ColorRef(WHITE_COLOR));
+
 	// Create the Spread Chart 
 	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
 	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).SetColor(ColorRef(WHITE_COLOR));		
@@ -450,4 +460,20 @@ HBRUSH CResultView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 	// TODO:  기본값이 적당하지 않으면 다른 브러시를 반환합니다.
 	return hbr;
+}
+
+void CResultView::DrawZoneInformation() {
+	// zone information 정보를 포함한 X축의 데이터 갯수 계산
+	//for (int k = 0; k < 32; k++) {
+	//	int tempDistance = pDoc->m_ZoneDistance[k];
+
+	//}
+
+	// X축 개수 나오면 그래프 그리기
+	
+	// 현재는 단순히 각 Zone에 해당하는 온도값만 그려준다.
+	for (int k = 0; k < 32; k++) {
+		m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).AddXY(k, pDoc->m_ZoneTemp[k], NULL, ColorRef(WHITE_COLOR));
+	}
+
 }
