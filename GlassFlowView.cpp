@@ -526,21 +526,21 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 
 	for (int j = 0; j < pDoc->EROI[0]->GetCount(); j++)
 	{
-		if (pDoc->EROI[j]->stretch->CheckLine(BASE_ROI_LEFT, 3, ux - 1, uy - 1) || pDoc->EROI[j]->stretch->CheckLine(BASE_ROI_RIGHT, 3, ux - 1, uy - 1)) {
+		if (pDoc->EROI[j]->stretch->CheckLine(LEFT_LINE, 3, ux - 1, uy - 1) || pDoc->EROI[j]->stretch->CheckLine(RIGHT_LINE, 3, ux - 1, uy - 1)) {
 			bEROI_checkLineLR[j] = true;
 			EROI_checkLineNum = j;
 		}
-		else if (pDoc->EROI[j]->stretch->CheckLine(BASE_ROI_TOP, 3, ux - 1, uy - 1) || pDoc->EROI[j]->stretch->CheckLine(BASE_ROI_BOTTOM, 3, ux - 1, uy - 1)) {
+		else if (pDoc->EROI[j]->stretch->CheckLine(TOP_LINE, 3, ux - 1, uy - 1) || pDoc->EROI[j]->stretch->CheckLine(BOTTOM_LINE, 3, ux - 1, uy - 1)) {
 			bEROI_checkLineTB[j] = true;
 			EROI_checkLineNum = j;
 		}
 	}
 
 	// 마우스 커서 설정
-	if (pDoc->BROI->stretch->CheckLine(BASE_ROI_LEFT, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(BASE_ROI_RIGHT, 2, ux - 1, uy - 1) || bEROI_checkLineLR[EROI_checkLineNum]) {
+	if (pDoc->BROI->stretch->CheckLine(LEFT_LINE, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(RIGHT_LINE, 2, ux - 1, uy - 1) || bEROI_checkLineLR[EROI_checkLineNum]) {
 		SetCursor(LoadCursor(0, IDC_SIZEWE));
 	}
-	else if (pDoc->BROI->stretch->CheckLine(BASE_ROI_TOP, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(BASE_ROI_BOTTOM, 2, ux - 1, uy - 1) || bEROI_checkLineTB[EROI_checkLineNum]) {
+	else if (pDoc->BROI->stretch->CheckLine(TOP_LINE, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(BOTTOM_LINE, 2, ux - 1, uy - 1) || bEROI_checkLineTB[EROI_checkLineNum]) {
 		SetCursor(LoadCursor(0, IDC_SIZENS));
 	}
 	else if (m_POI_Mode != DRAW_POI && pDoc->m_POI_count > 0)	// POI 선택 시
@@ -550,7 +550,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		else
 			SetCursor(LoadCursor(0, IDC_ARROW));
 	}
-	else if (pDoc->BROI->GetInsideFlag())								// Base ROI 선택 시
+	else if (pDoc->BROI->GetInsideFlag() || (EROI_insideNum != -1 && pDoc->EROI[EROI_insideNum]->GetInsideFlag()))								// Base ROI 선택 시
 		SetCursor(LoadCursor(0, IDC_SIZEALL));
 	else if (m_XY.x < wnd_sizex - 5 && m_XY.y < wnd_sizey - 5)
 		SetCursor(LoadCursor(0, IDC_ARROW));
@@ -1292,53 +1292,53 @@ void CGlassFlowView::OnLButtonDown(UINT nFlags, CPoint point)
 		pDoc->EROI[pDoc->EROI[0]->GetCount()]->SetPosXY(Y_TOP, uy - 1);
 	}
 	// When the EROI Line Caught
-	else if (EROI_checkLineNum != -1 && (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_LEFT, 3, ux - 1, uy - 1) || pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_RIGHT, 3, ux - 1, uy - 1) ||
-		pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_TOP, 3, ux - 1, uy - 1) || pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_BOTTOM, 3, ux - 1, uy - 1)))
+	else if (EROI_checkLineNum != -1 && (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(LEFT_LINE, 3, ux - 1, uy - 1) || pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(RIGHT_LINE, 3, ux - 1, uy - 1) ||
+		pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(TOP_LINE, 3, ux - 1, uy - 1) || pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BOTTOM_LINE, 3, ux - 1, uy - 1)))
 	{
-		if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_LEFT, 3, ux - 1, uy - 1)) {
+		if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(LEFT_LINE, 3, ux - 1, uy - 1)) {
 			pDoc->EROI[EROI_checkLineNum]->stretch->SetCatchLNP(LEFT_LINE, true);
 
 			ClickedDistance.x = ux - 1;
 		}
-		else if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_RIGHT, 3, ux - 1, uy - 1)){
+		else if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(RIGHT_LINE, 3, ux - 1, uy - 1)){
 			pDoc->EROI[EROI_checkLineNum]->stretch->SetCatchLNP(RIGHT_LINE, true);
 
 			ClickedDistance.x = ux - 1;
 		}
-		else if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_TOP, 3, ux - 1, uy - 1)) {
+		else if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(TOP_LINE, 3, ux - 1, uy - 1)) {
 			pDoc->EROI[EROI_checkLineNum]->stretch->SetCatchLNP(TOP_LINE, true);
 
 			ClickedDistance.y = uy - 1;
 		}
-		else if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BASE_ROI_BOTTOM, 3, ux - 1, uy - 1)) {
+		else if (pDoc->EROI[EROI_checkLineNum]->stretch->CheckLine(BOTTOM_LINE, 3, ux - 1, uy - 1)) {
 			pDoc->EROI[EROI_checkLineNum]->stretch->SetCatchLNP(BOTTOM_LINE, true);
 
 			ClickedDistance.y = uy - 1;
 		}
 	}
 	// When the BROI Line Caught
-	else if (pDoc->BROI->stretch->CheckLine(BASE_ROI_LEFT, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(BASE_ROI_RIGHT, 2, ux - 1, uy - 1) ||
-		pDoc->BROI->stretch->CheckLine(BASE_ROI_TOP, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(BASE_ROI_BOTTOM, 2, ux - 1, uy - 1))
+	else if (pDoc->BROI->stretch->CheckLine(LEFT_LINE, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(RIGHT_LINE, 2, ux - 1, uy - 1) ||
+		pDoc->BROI->stretch->CheckLine(TOP_LINE, 2, ux - 1, uy - 1) || pDoc->BROI->stretch->CheckLine(BOTTOM_LINE, 2, ux - 1, uy - 1))
 	{
-		if (pDoc->BROI->stretch->CheckLine(BASE_ROI_LEFT, 2, ux - 1, uy - 1))
+		if (pDoc->BROI->stretch->CheckLine(LEFT_LINE, 2, ux - 1, uy - 1))
 		{
 			pDoc->BROI->stretch->SetCatchLNP(LEFT_LINE, true);
 
 			ClickedDistance.x = ux - 1;
 		}
-		else if (pDoc->BROI->stretch->CheckLine(BASE_ROI_RIGHT, 2, ux - 1, uy - 1))
+		else if (pDoc->BROI->stretch->CheckLine(RIGHT_LINE, 2, ux - 1, uy - 1))
 		{
 			pDoc->BROI->stretch->SetCatchLNP(RIGHT_LINE, true);
 
 			ClickedDistance.x = ux - 1;
 		}
-		else if (pDoc->BROI->stretch->CheckLine(BASE_ROI_TOP, 2, ux - 1, uy - 1))
+		else if (pDoc->BROI->stretch->CheckLine(TOP_LINE, 2, ux - 1, uy - 1))
 		{
 			pDoc->BROI->stretch->SetCatchLNP(TOP_LINE, true);
 
 			ClickedDistance.y = uy - 1;
 		}
-		else if (pDoc->BROI->stretch->CheckLine(BASE_ROI_BOTTOM, 2, ux - 1, uy - 1))
+		else if (pDoc->BROI->stretch->CheckLine(BOTTOM_LINE, 2, ux - 1, uy - 1))
 		{
 			pDoc->BROI->stretch->SetCatchLNP(BOTTOM_LINE, true);
 

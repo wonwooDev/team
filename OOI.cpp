@@ -439,7 +439,7 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 
 	switch (line_case)
 	{
-	case BASE_ROI_LEFT:
+	case LEFT_LINE:
 		tempLinePos = OOI_lx - (clkDistance.x - ux);
 
 		if (tempLinePos <= 0)
@@ -464,7 +464,7 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 			clkDistance.x = ux;
 		}
 		break;
-	case BASE_ROI_RIGHT:
+	case RIGHT_LINE:
 		tempLinePos = OOI_rx - distanceX;
 
 		if (tempLinePos <= 0)
@@ -489,7 +489,7 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 			clkDistance.x = ux;
 		}
 		break;
-	case BASE_ROI_TOP:
+	case TOP_LINE:
 		tempLinePos = OOI_ty - distanceY;
 
 		if (tempLinePos <= 0)
@@ -514,7 +514,7 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 			clkDistance.y = uy;
 		}
 		break;
-	case BASE_ROI_BOTTOM:
+	case BOTTOM_LINE:
 		tempLinePos = OOI_by - distanceY;
 
 		if (tempLinePos <= 0)
@@ -639,19 +639,19 @@ bool CLineStretch::CheckLine(int line_case, int gap, unsigned short ux, unsigned
 
 	switch (line_case)
 	{
-	case BASE_ROI_LEFT:
+	case LEFT_LINE:
 		if (OOI_ty - 2 < uy - 1 && OOI_by + gap > uy && OOI_lx - gap < ux && OOI_lx + gap > ux)
 			result = true;
 		break;
-	case BASE_ROI_RIGHT:
+	case RIGHT_LINE:
 		if (OOI_ty - 2 < uy - 1 && OOI_by + gap > uy && OOI_rx - gap < ux && OOI_rx + gap > ux)
 			result = true;
 		break;
-	case BASE_ROI_TOP:
+	case TOP_LINE:
 		if (OOI_lx - 2 < ux - 1 && OOI_rx + gap > ux && OOI_ty - gap < uy && OOI_ty + gap > uy)
 			result = true;
 		break;
-	case BASE_ROI_BOTTOM:
+	case BOTTOM_LINE:
 		if (OOI_lx - 2 < ux - 1 && OOI_rx + gap > ux && OOI_by - gap < uy && OOI_by + gap > uy)
 			result = true;
 		break;

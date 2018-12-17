@@ -5,11 +5,6 @@
 #define	Y_BOTTOM				2
 #define Y_TOP					3
 
-#define BASE_ROI_LEFT			1
-#define BASE_ROI_RIGHT			2
-#define BASE_ROI_TOP			3
-#define BASE_ROI_BOTTOM			4
-
 #define LEFT_LINE				1
 #define RIGHT_LINE				2
 #define TOP_LINE				3
