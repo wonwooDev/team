@@ -18,11 +18,6 @@ COOI::~COOI()
 
 }
 
-void COOI::PerformAttack()
-{
-	//stretch->Stretch();
-}
-
 int COOI::GetPosXY(int XY_pos) {
 	int result;
 
@@ -153,6 +148,16 @@ void COOI::InputXYVal(int& lx, int& rx, int& ty, int& by)
 	by = this->by;
 }
 
+bool COOI::IsInsideOOI(unsigned short ux, unsigned short uy) {
+		bool insideBaseROI = false;
+	
+		if (this->lx < ux - 1 && this->rx - 1 > ux && this->ty - 1 < uy && this->by - 1 > uy)
+			insideBaseROI = true;
+	
+		return insideBaseROI;
+}
+
+
 int COOI::GetWidth() {
 	return this->lx > this->rx ? lx - rx : rx - lx;
 }
@@ -167,6 +172,14 @@ void COOI::InitXYPos() {
 
 int COOI::GetMinSize() {
 	return this->minSize;
+}
+
+bool COOI::GetInsideFlag() {
+	return this->bIsInside;
+}
+
+void COOI::SetInsideFlag(bool flag) {
+	this->bIsInside = flag;
 }
 
 bool COOI::SelectObj(RECT* CBaseRect, unsigned short ux, unsigned short uy, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance)
@@ -310,30 +323,22 @@ CStretchNoway::CStretchNoway(COOI* pOOI) {
 
 
 ////	Move 자식들의 생성자's	////
-CRectMove::CRectMove(COOI* pOOI)
-{
+CRectMove::CRectMove(COOI* pOOI){
 	this->pOOI = pOOI;
 }
 
-CLineMove::CLineMove(COOI* pOOI)
-{
+CLineMove::CLineMove(COOI* pOOI){
 	this->pOOI = pOOI;
 }
 
-CPointMove::CPointMove(COOI* pOOI)
-{
+CPointMove::CPointMove(COOI* pOOI){
 	this->pOOI = pOOI;
 }
 
-CROIMove::CROIMove(COOI* pOOI)
-{
+CMoveNoway::CMoveNoway(COOI* pOOI){
 	this->pOOI = pOOI;
 }
 
-CMoveNoway::CMoveNoway(COOI* pOOI)
-{
-	this->pOOI = pOOI;
-}
 
 
 bool COOI::GetDirection()
@@ -424,13 +429,10 @@ void CEROI::Display()
 POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux, unsigned short uy)
 {
 	int tempLinePos;
-	int BROI_lx, BROI_rx, BROI_ty, BROI_by;
+	int OOI_lx, OOI_rx, OOI_ty, OOI_by;
 	int distanceX, distanceY;
 
-	BROI_lx = pOOI->GetPosXY(X_LEFT);
-	BROI_rx = pOOI->GetPosXY(X_RIGHT);
-	BROI_ty = pOOI->GetPosXY(Y_TOP);
-	BROI_by = pOOI->GetPosXY(Y_BOTTOM);
+	pOOI->InputXYVal(OOI_lx, OOI_rx, OOI_ty, OOI_by);
 
 	distanceX = clkDistance.x - ux;
 	distanceY = clkDistance.y - uy;
@@ -438,7 +440,7 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 	switch (line_case)
 	{
 	case BASE_ROI_LEFT:
-		tempLinePos = BROI_lx - (clkDistance.x - ux);
+		tempLinePos = OOI_lx - (clkDistance.x - ux);
 
 		if (tempLinePos <= 0)
 		{
@@ -447,23 +449,23 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 		}
 		else
 		{
-			if (BROI_lx - distanceX > BROI_rx - pOOI->GetMinSize())
+			if (OOI_lx - distanceX > OOI_rx - pOOI->GetMinSize())
 			{
 				break;
 			}
-			else if (BROI_lx - distanceX > BROI_rx)
+			else if (OOI_lx - distanceX > OOI_rx)
 			{
 				SetCatchLNP(LEFT_LINE, FALSE);
 				SetCatchLNP(RIGHT_LINE, TRUE);
 			}
 			else
-				pOOI->SetPosXY(X_LEFT, BROI_lx - distanceX);
+				pOOI->SetPosXY(X_LEFT, OOI_lx - distanceX);
 
 			clkDistance.x = ux;
 		}
 		break;
 	case BASE_ROI_RIGHT:
-		tempLinePos = BROI_rx - distanceX;
+		tempLinePos = OOI_rx - distanceX;
 
 		if (tempLinePos <= 0)
 		{
@@ -472,23 +474,23 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 		}
 		else
 		{
-			if (BROI_rx - distanceX < BROI_lx + pOOI->GetMinSize())
+			if (OOI_rx - distanceX < OOI_lx + pOOI->GetMinSize())
 			{
 				break;
 			}
-			else if (BROI_rx - distanceX < BROI_lx)
+			else if (OOI_rx - distanceX < OOI_lx)
 			{
 				SetCatchLNP(RIGHT_LINE, FALSE);
 				SetCatchLNP(LEFT_LINE, TRUE);
 			}
 			else
-				pOOI->SetPosXY(X_RIGHT, BROI_rx - distanceX);
+				pOOI->SetPosXY(X_RIGHT, OOI_rx - distanceX);
 
 			clkDistance.x = ux;
 		}
 		break;
 	case BASE_ROI_TOP:
-		tempLinePos = BROI_ty - distanceY;
+		tempLinePos = OOI_ty - distanceY;
 
 		if (tempLinePos <= 0)
 		{
@@ -497,23 +499,23 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 		}
 		else
 		{
-			if (BROI_ty - distanceY > BROI_by - pOOI->GetMinSize())
+			if (OOI_ty - distanceY > OOI_by - pOOI->GetMinSize())
 			{
 				break;
 			}
-			else if (BROI_ty - distanceY > BROI_by)
+			else if (OOI_ty - distanceY > OOI_by)
 			{
 				SetCatchLNP(TOP_LINE, FALSE);
 				SetCatchLNP(BOTTOM_LINE, TRUE);
 			}
 			else
-				pOOI->SetPosXY(Y_TOP, BROI_ty - distanceY);
+				pOOI->SetPosXY(Y_TOP, OOI_ty - distanceY);
 
 			clkDistance.y = uy;
 		}
 		break;
 	case BASE_ROI_BOTTOM:
-		tempLinePos = BROI_by - distanceY;
+		tempLinePos = OOI_by - distanceY;
 
 		if (tempLinePos <= 0)
 		{
@@ -522,17 +524,17 @@ POINT CLineStretch::Stretch(int line_case, POINT clkDistance, unsigned short ux,
 		}
 		else
 		{
-			if (BROI_by - distanceY < BROI_ty + pOOI->GetMinSize())
+			if (OOI_by - distanceY < OOI_ty + pOOI->GetMinSize())
 			{
 				break;
 			}
-			else if (BROI_by - distanceY < BROI_ty)
+			else if (OOI_by - distanceY < OOI_ty)
 			{
 				SetCatchLNP(BOTTOM_LINE, FALSE);
 				SetCatchLNP(TOP_LINE, TRUE);
 			}
 			else
-				pOOI->SetPosXY(Y_BOTTOM, BROI_by - distanceY);
+				pOOI->SetPosXY(Y_BOTTOM, OOI_by - distanceY);
 
 			clkDistance.y = uy;
 		}
@@ -628,6 +630,36 @@ bool CLineStretch::InvalidateRegion(RECT* CBaseRect, int lineCase, double static
 	return result;
 }
 
+bool CLineStretch::CheckLine(int line_case, int gap, unsigned short ux, unsigned short uy)
+{
+	bool result = false;
+	int OOI_lx, OOI_rx, OOI_ty, OOI_by;
+
+	pOOI->InputXYVal(OOI_lx, OOI_rx, OOI_ty, OOI_by);
+
+	switch (line_case)
+	{
+	case BASE_ROI_LEFT:
+		if (OOI_ty - 2 < uy - 1 && OOI_by + gap > uy && OOI_lx - gap < ux && OOI_lx + gap > ux)
+			result = true;
+		break;
+	case BASE_ROI_RIGHT:
+		if (OOI_ty - 2 < uy - 1 && OOI_by + gap > uy && OOI_rx - gap < ux && OOI_rx + gap > ux)
+			result = true;
+		break;
+	case BASE_ROI_TOP:
+		if (OOI_lx - 2 < ux - 1 && OOI_rx + gap > ux && OOI_ty - gap < uy && OOI_ty + gap > uy)
+			result = true;
+		break;
+	case BASE_ROI_BOTTOM:
+		if (OOI_lx - 2 < ux - 1 && OOI_rx + gap > ux && OOI_by - gap < uy && OOI_by + gap > uy)
+			result = true;
+		break;
+	}
+
+	return result;
+}
+
 
 POINT CPointStretch::Stretch(int point_case, POINT clkDistance, unsigned short ux, unsigned short uy)
 {
@@ -648,6 +680,14 @@ bool CPointStretch::InvalidateRegion(RECT* CBaseRect, int quadrant, double stati
 {
 	return 0;
 }
+
+bool CPointStretch::CheckLine(int line_case, int gap, unsigned short ux, unsigned short uy)
+{
+	bool result = false;
+
+	return result;
+}
+
 
 POINT CStretchNoway::Stretch(int caseNoway, POINT clkDistance, unsigned short ux, unsigned short uy) 
 {
@@ -671,6 +711,13 @@ bool CStretchNoway::InvalidateRegion(RECT* CBaseRect, int quadrant, double stati
 	return 0;
 }
 
+bool CStretchNoway::CheckLine(int line_case, int gap, unsigned short ux, unsigned short uy)
+{
+	bool result = false;
+
+	return result;
+}
+
 bool CRectMove::Move(int lx_temp, int ty_temp, int rx_temp, int by_temp) {
 	if (lx_temp < 1 || rx_temp < 1 || ty_temp < 1 || by_temp < 1)
 		return FALSE;
@@ -687,16 +734,15 @@ bool CLineMove::Move(int lx_temp, int ty_temp, int rx_temp, int by_temp) {
 	return 0;
 }
 
+
 bool CPointMove::Move(int lx_temp, int ty_temp, int rx_temp, int by_temp) {
 	return 0;
 }
 
-bool CROIMove::Move(int lx_temp, int ty_temp, int rx_temp, int by_temp) {
-	return 0;
-}
 
 bool CMoveNoway::Move(int lx_temp, int ty_temp, int rx_temp, int by_temp) {
 	return 0;
 }
+
 
 ////////////////////	Strategy Pattern	//////////////////////

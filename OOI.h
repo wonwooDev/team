@@ -59,16 +59,6 @@ public:
 	virtual bool Move(int lx_temp, int ty_temp, int rx_temp, int by_temp);
 };
 
-class CROIMove : public CMove
-{
-protected:
-
-public:
-	CROIMove(COOI* pOOI);
-
-	virtual bool Move(int lx_temp, int ty_temp, int rx_temp, int by_temp);
-};
-
 class CMoveNoway : public CMove
 {
 protected:
@@ -90,6 +80,7 @@ public:
 	virtual bool GetCatchLNP(int LNP_case) = 0;
 	virtual bool SetCatchLNP(int LNP_case, bool flag) = 0;
 	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance) = 0;
+	virtual bool CheckLine(int line_case, int gap, unsigned short ux, unsigned short uy) = 0;
 };
 
 class CLineStretch : public CStretch
@@ -104,6 +95,7 @@ public:
 	virtual bool GetCatchLNP(int line_case);
 	virtual bool SetCatchLNP(int line_case, bool flag);
 	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance);
+	virtual bool CheckLine(int line_case, int gap, unsigned short ux, unsigned short uy);
 };
 
 class CPointStretch : public CStretch
@@ -118,6 +110,7 @@ public:
 	virtual bool GetCatchLNP(int point_case);
 	virtual bool SetCatchLNP(int point_case, bool flag);
 	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance);
+	virtual bool CheckLine(int line_case, int gap, unsigned short ux, unsigned short uy);
 };
 
 class CStretchNoway : public CStretch
@@ -131,6 +124,7 @@ public:
 	virtual bool GetCatchLNP(int caseNoway);
 	virtual bool SetCatchLNP(int caseNoway, bool flag);
 	virtual bool InvalidateRegion(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int moveOffs_x, int moveOffs_y, float zoom, POINT ClickedDistance);
+	virtual bool CheckLine(int line_case, int gap, unsigned short ux, unsigned short uy);
 };
 
 
@@ -141,6 +135,7 @@ protected:
 	bool bOppDrawDone;
 	bool bDrawFirst;
 	bool bOppDrawFirst;
+	bool bIsInside;
 
 	int lx, rx, ty, by;
 	int opp_lx, opp_rx, opp_ty, opp_by;
@@ -157,7 +152,6 @@ public:
 	CMove*			move;					// 움직임
 	CStretch*		stretch;				// 늘이기
 
-	void			PerformAttack();			// 공격
 	virtual void	Display() = 0;				// 자식 클래스에서 구현 필수
 
 	virtual bool	GetDirection();
@@ -193,10 +187,15 @@ public:
 	virtual int		GetMinSize();
 	virtual	bool	SetMinSize(int val);
 
+	virtual bool	GetInsideFlag();
+	virtual void	SetInsideFlag(bool flag);
+
 	virtual bool	SelectObj(RECT* CBaseRect, unsigned short ux, unsigned short uy, CPoint m_XY, int offs_x, int offs_y, float m_bmp_zoom, POINT ClickedDistance);
 	virtual bool	SetInvaliRect(RECT* CBaseRect, int quadrant, double static_factor, double dynamic_factor, CPoint m_XY, int offs_x, int offs_y, float m_bmp_zoom, POINT ClickedDistance);
 	virtual	void	InitXYPos();
 	virtual void	InputXYVal(int& lx, int& rx, int& ty, int& by);
+	virtual bool	IsInsideOOI(unsigned short ux, unsigned short uy);
+
 };
 
 class CBROI : public COOI

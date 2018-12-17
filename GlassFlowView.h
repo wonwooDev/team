@@ -52,6 +52,8 @@ protected: // serialization에서만 만들어집니다.
 	bool	m_bROI_BLine_flag;
 	bool	m_bROI_LLine_flag;
 	bool	m_bROI_RLine_flag;
+	bool	bEROI_checkLineLR[MAX_EROI_CNT];
+	bool	bEROI_checkLineTB[MAX_EROI_CNT];
 
 	int		m_POI_Mode;			// POI 메뉴 항목 모드 선택
 	int		m_bmp_size_x;	// drawing size
@@ -65,6 +67,8 @@ protected: // serialization에서만 만들어집니다.
 	int		m_bforeStretchSizeY;
 	int		m_posX;
 	int		m_posY;
+	int		EROI_checkLineNum;
+	int		EROI_insideNum;
 
 	float DataPoint;
 	float	m_bmp_zoom;		// drawing zoom
@@ -79,7 +83,6 @@ protected: // serialization에서만 만들어집니다.
 	int wnd_sizex, wnd_sizey;
 
 	bool		InsideBaseROI(unsigned short ux, unsigned short uy, COOI* baseROI);
-	bool		CheckLineBaseROI(int line_case, int sLine, int sideOne, int sideTwo, int gap, unsigned short ux, unsigned short uy);
 
 	void		CalculatePoint(CPoint point);
 	void		InvalidatePOIRect(CPoint point, int x1, int y1, int x2, int y2);

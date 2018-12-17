@@ -263,21 +263,18 @@ void CResultView::UpdateResult()
 				{
 					if (pDoc->m_ResultData.TMax[i] != 0.0f)
 						m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TMax[i], ProcessTime, ColorRef(i));
-
 				}
 
 				if (pDoc->m_bCheckSpread) 
 				{
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).AddXY(m_XCount, pDoc->m_spreadTempr, ProcessTime, ColorRef(WHITE_COLOR));
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(1).AddXY(m_XCount, pDoc->m_spreadlimitTempr, ProcessTime, ColorRef(0));		// RED
-					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(2).AddXY(m_XCount, pDoc->m_spreadlimitTempr-0.01, ProcessTime, ColorRef(0));
+					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(2).AddXY(m_XCount, pDoc->m_spreadlimitTempr - 0.01, ProcessTime, ColorRef(0));
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(3).AddXY(m_XCount, pDoc->m_spreadlimitTempr + 0.01, ProcessTime, ColorRef(0));
 				}
 
 				if (pDoc->m_bSpreadCondition)
-				{
 					m_ResultDlg.m_SpreadTabDlg.spread_edit.SetWindowTextA("OK");
-				}
 				else
 					m_ResultDlg.m_SpreadTabDlg.spread_edit.SetWindowTextA("NG");
 
