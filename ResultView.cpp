@@ -208,13 +208,12 @@ void CResultView::UpdateResult()
 	{
 		if (!(pDoc->m_ZoneInfoEnable)) {
 			m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
+			// Zone information disable되면 차트 클리어 필요함 by DK
 		}
 		else
 		{
 			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).Clear();
-			for (int k = 0; k < 32; k++) {
-				m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).AddXY(k, pDoc->m_ZoneTemp[k], NULL, ColorRef(WHITE_COLOR));
-			}
+			DrawZoneInformation();
 
 			if (theApp.m_bLoggingRunning)
 			{
@@ -463,4 +462,20 @@ HBRUSH CResultView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 	// TODO:  기본값이 적당하지 않으면 다른 브러시를 반환합니다.
 	return hbr;
+}
+
+void CResultView::DrawZoneInformation() {
+	// zone information 정보를 포함한 X축의 데이터 갯수 계산
+	//for (int k = 0; k < 32; k++) {
+	//	int tempDistance = pDoc->m_ZoneDistance[k];
+
+	//}
+
+	// X축 개수 나오면 그래프 그리기
+	
+	// 현재는 단순히 각 Zone에 해당하는 온도값만 그려준다.
+	for (int k = 0; k < 32; k++) {
+		m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).AddXY(k, pDoc->m_ZoneTemp[k], NULL, ColorRef(WHITE_COLOR));
+	}
+
 }

@@ -73,6 +73,7 @@ public:
 	void InitROIData();
 	void setFont();
 	void CheckROICount(int ROI_count, int cROI_count);
+	void DrawZoneInformation();
 
 	COLORREF ColorRef(int series_idx);
 	
