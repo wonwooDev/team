@@ -110,8 +110,8 @@ void CROIGridView::InitStatusData()
 	m_ROIGridDlg.m_ROI_GridView.put_Row(1);								// trace row
 	m_ROIGridDlg.m_ROI_GridView.put_Cols(pDoc->m_ROICount + 2);
 
-	colWidth = (rectClient.Width() - 30) * 15 / pDoc->m_ROICount+1;
-	//colWidth = (rectClient.Width() * 15) / pDoc->m_ROICount + 1;
+	colWidth = (rectClient.Width() - 40) * 11 / pDoc->m_ROICount + 1;
+	//colWidth = (rectClient.Width() - 30) * 15 / pDoc->m_ROICount+1;
 
 	SetColProperty(0, pDoc->m_ROICount + 1, "ROI #", colWidth, 0);
 	m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(0, pDoc->m_ROICount + 1, _T("Spread"));
@@ -272,8 +272,7 @@ void CROIGridView::UpdateGridControlSet()
 
 	if (pDoc->columnUpdateFlag == true)
 	{
-		//int colWidth = (rectClient.Width() - 73) * 15 / pDoc->m_ROICount;
-		int colWidth = (rectClient.Width() * 12) / (pDoc->m_POI_count + pDoc->m_ROICount + 1);
+		int colWidth = (rectClient.Width() - 20) * 11 / (/*pDoc->m_POI_count + */pDoc->m_ROICount + 1);
 		int columnTemp = (pDoc->m_POI_count) + (pDoc->m_ROICount) + 2;
 
 		// For redraw of grid control
@@ -284,12 +283,13 @@ void CROIGridView::UpdateGridControlSet()
 		if (pDoc->m_POI_count > 0) {				// POI가 하나 이상일 경우에만 동작,
 			m_ROIGridDlg.m_ROI_GridView.put_Cols(columnTemp);			// trace column
 
-			SetColProperty(0, pDoc->RunningIndex.GetCount(), "POI #", colWidth, 1);
+			SetColProperty(1, pDoc->RunningIndex.GetCount()+1, "POI #", colWidth, 0);
 
 			SetColProperty(1, pDoc->m_ROICount + 1, "ROI #", colWidth, pDoc->m_POI_count);
 
 			m_ROIGridDlg.m_ROI_GridView.put_ColAlignment(pDoc->m_POI_count + pDoc->m_ROICount + 1, 4);
 			m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(0, pDoc->m_POI_count + pDoc->m_ROICount + 1, _T("Spread"));
+			m_ROIGridDlg.m_ROI_GridView.put_ColWidth((pDoc->m_POI_count + pDoc->m_ROICount + 1), colWidth);
 
 			for (int i = 1; i < pDoc->m_POI_count + 1; i++)
 			{
@@ -302,6 +302,7 @@ void CROIGridView::UpdateGridControlSet()
 		}
 		else
 		{
+			colWidth = (rectClient.Width() - 20) * 11 / pDoc->m_ROICount + 1;
 			m_ROIGridDlg.m_ROI_GridView.put_Cols(pDoc->m_ROICount + 2);	// trace column for roiCount
 
 			SetColProperty(1, pDoc->m_ROICount + 1, "ROI #", colWidth, 0);
