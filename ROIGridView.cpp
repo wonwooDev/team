@@ -272,7 +272,7 @@ void CROIGridView::UpdateGridControlSet()
 
 	if (pDoc->columnUpdateFlag == true)
 	{
-		int colWidth = (rectClient.Width() - 40) * 11 / (/*pDoc->m_POI_count + */pDoc->m_ROICount + 1);
+		int colWidth = (rectClient.Width() - 20) * 11 / (/*pDoc->m_POI_count + */pDoc->m_ROICount + 1);
 		int columnTemp = (pDoc->m_POI_count) + (pDoc->m_ROICount) + 2;
 
 		// For redraw of grid control
@@ -302,7 +302,7 @@ void CROIGridView::UpdateGridControlSet()
 		}
 		else
 		{
-			colWidth = (rectClient.Width() - 40) * 11 / pDoc->m_ROICount + 1;
+			colWidth = (rectClient.Width() - 20) * 11 / pDoc->m_ROICount + 1;
 			m_ROIGridDlg.m_ROI_GridView.put_Cols(pDoc->m_ROICount + 2);	// trace column for roiCount
 
 			SetColProperty(1, pDoc->m_ROICount + 1, "ROI #", colWidth, 0);
