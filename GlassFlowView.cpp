@@ -405,6 +405,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 		pMemDC->SelectObject(pOldBrush);
 	}
 
+	// EROI 영역
 	if (pDoc->m_OOIShowNum == SHOW_EXCLUSIVE_ROI || pDoc->m_OOIShowNum == SHOW_ALL_ROI)
 	{
 		CPen pen(PS_DOT, 1, RGB(90, 90, 90));
@@ -524,6 +525,7 @@ void CGlassFlowView::OnDraw(CDC* pDC)
 			pMemDC->TextOutA(m_XY.x - m_bmp_ofs_x + 5, m_XY.y - m_bmp_ofs_y + 20, TmperInf);
 	}
 
+	// EROI 라인에 위치해 있을 시 커서 플래그 설정 및 몇번째 EROI 인덱스인지 저장
 	for (int j = 0; j < pDoc->EROI[0]->GetCount(); j++)
 	{
 		if (pDoc->EROI[j]->stretch->CheckLine(LEFT_LINE, 3, ux - 1, uy - 1) || pDoc->EROI[j]->stretch->CheckLine(RIGHT_LINE, 3, ux - 1, uy - 1)) {
@@ -738,18 +740,15 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 	fx /= m_bmp_zoom;
 	fy /= m_bmp_zoom;
 
-	BROI_lx = pDoc->BROI->GetPosXY(X_LEFT);
-	BROI_rx = pDoc->BROI->GetPosXY(X_RIGHT);
-	BROI_ty = pDoc->BROI->GetPosXY(Y_TOP);
-	BROI_by = pDoc->BROI->GetPosXY(Y_BOTTOM);
+	pDoc->BROI->InputXYVal(BROI_lx, BROI_rx, BROI_ty, BROI_by);
 
 	// possible internal additonal zoom!
 	unsigned short	ZMode = DDAQ_ZMODE_DIRECT;
 	float			Zoom = 1.0f;
 
 	theApp.DDAQ_IRDX_IMAGE_GetZoom(pDoc->m_hIRDX_Doc, &ZMode, &Zoom); 
-	if (ZMode > DDAQ_ZMODE_DIRECT)
-	{
+
+	if (ZMode > DDAQ_ZMODE_DIRECT){
 		fx /= Zoom;
 		fy /= Zoom;
 	}
@@ -783,7 +782,7 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 				s.Format(IDS_FMT_PIXEL_POINT_Cursor, ux - 1, uy - 1, DataPoint);
 			}
 
-			// When the EROI line caught
+			// EROI 라인 늘릴 시
 			if (EROI_checkLineNum != -1 && (pDoc->EROI[EROI_checkLineNum]->stretch->GetCatchLNP(LEFT_LINE) || pDoc->EROI[EROI_checkLineNum]->stretch->GetCatchLNP(RIGHT_LINE)))
 			{
 				if (pDoc->EROI[EROI_checkLineNum]->stretch->GetCatchLNP(LEFT_LINE))
@@ -812,7 +811,7 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 				OldRecT = CurrentRect;
 				InvalidateRect(&CurrentRect, 0);
 			}
-			// When the BROI line caught
+			// BROI 라인 늘릴 시
 			else if (pDoc->BROI->stretch->GetCatchLNP(LEFT_LINE) || pDoc->BROI->stretch->GetCatchLNP(RIGHT_LINE))
 			{
 				if (pDoc->BROI->stretch->GetCatchLNP(LEFT_LINE))
@@ -841,8 +840,8 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 				OldRecT = CurrentRect;
 				InvalidateRect(&CurrentRect, 0);
 			}
-			
-			else if (m_PointMove_flag)				// PROI 이동
+			// PROI 이동
+			else if (m_PointMove_flag)				
 			{
 				int tempX, tempY;
 
@@ -859,7 +858,8 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 				ClickedDistance.x = ux;
 				ClickedDistance.y = uy;
 			}
-			else if (EROI_insideNum != -1 && pDoc->EROI[EROI_insideNum]->GetInsideFlag())		// EROI 이동
+			// EROI 이동
+			else if (EROI_insideNum != -1 && pDoc->EROI[EROI_insideNum]->GetInsideFlag())		
 			{
 				int tempLX, tempRX, tempTY, tempBY;
 				int EROI_lx, EROI_rx, EROI_ty, EROI_by;
@@ -886,7 +886,8 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 
 				this->Invalidate(FALSE);
 			}
-			else if (pDoc->BROI->GetInsideFlag())			// BROI 이동
+			// BROI 이동
+			else if (pDoc->BROI->GetInsideFlag())			
 			{
 				int tempLX, tempRX, tempTY, tempBY;
 
@@ -910,7 +911,8 @@ void CGlassFlowView::OnMouseMove(UINT nFlags, CPoint point)
 
 				this->Invalidate(FALSE);
 			}
-			else if (m_ViewMoveFlag && pDoc->m_ZoomRatio != 1)	// 화면 이동
+			// 화면 이동
+			else if (m_ViewMoveFlag && pDoc->m_ZoomRatio != 1)	
 			{
 				/// 여기 까지
 				int temPosX, temPosY;
@@ -1227,20 +1229,6 @@ void CGlassFlowView::OnInitialUpdate()
 	CView::OnInitialUpdate();
 }
 
-bool CGlassFlowView::InsideBaseROI(unsigned short ux, unsigned short uy, COOI* baseROI)
-{
-	bool insideBaseROI;
-	int BROI_lx, BROI_rx, BROI_ty, BROI_by;
-
-	insideBaseROI = false;
-	baseROI->InputXYVal(BROI_lx, BROI_rx, BROI_ty, BROI_by);
-
-	if (BROI_lx < ux - 1 && BROI_rx - 1 > ux && BROI_ty - 1 < uy && BROI_by - 1 > uy)
-		insideBaseROI = true;
-
-	return insideBaseROI;
-}
-
 void CGlassFlowView::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
@@ -1513,7 +1501,7 @@ void CGlassFlowView::OnRButtonDown(UINT nFlags, CPoint point)
 		ClickedDistance.x = ux - 1;
 		ClickedDistance.y = uy - 1;
 	}
-	else if (pDoc->BROI->GetPosXY(X_RIGHT) != 0 && pDoc->BROI->GetPosXY(Y_BOTTOM) != 0 && pDoc->BROI->IsInsideOOI(ux, uy))//InsideBaseROI(ux, uy, pDoc->BROI))
+	else if (pDoc->BROI->GetPosXY(X_RIGHT) != 0 && pDoc->BROI->GetPosXY(Y_BOTTOM) != 0 && pDoc->BROI->IsInsideOOI(ux, uy))
 	{
 		pDoc->BROI->SetInsideFlag(true);
 

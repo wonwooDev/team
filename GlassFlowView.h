@@ -39,7 +39,6 @@ protected: // serialization에서만 만들어집니다.
 	CString TmperInf;
 	POINT ClickedDistance;
 
-	bool	m_isInsideBaseROI;
 	bool	m_isBaseRectFirst;
 	bool	m_isBaseRectDone;
 	bool	m_ViewMoveFlag;
@@ -81,8 +80,6 @@ protected: // serialization에서만 만들어집니다.
 	unsigned short		uy;
 
 	int wnd_sizex, wnd_sizey;
-
-	bool		InsideBaseROI(unsigned short ux, unsigned short uy, COOI* baseROI);
 
 	void		CalculatePoint(CPoint point);
 	void		InvalidatePOIRect(CPoint point, int x1, int y1, int x2, int y2);

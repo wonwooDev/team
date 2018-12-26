@@ -19,6 +19,8 @@ public:
 	void AdjustLayout();
 
 // 특성입니다.
+protected:
+
 public:
 	void SetVSDotNetLook(BOOL bSet)
 	{
@@ -126,9 +128,8 @@ public:
 	virtual ~CPropertiesWnd();
 
 protected:
-	CString NameOfPOI[4];
-	CString NameofOOI[4];
-	//CString ZoomMode[7];
+	CString			NameOfPOI[4];
+	CString			NameofOOI[4];
 
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);	

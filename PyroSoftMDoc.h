@@ -339,8 +339,6 @@ public:
 	float				m_ZoomRatio;
 	float				zoom_inAuto;
 
-	int					m_BROI_minSize;
-
 	int					limitOfTemperOver;		// 각 ROI의 Left X좌표값을 갖을 조건
 	int					gapOfPosition;			// 각 ROI의 이전과 현재 X값의 차이
 	int					limitOfXMaintain;		// 각 ROI의 X값이 Y축 방향으로의 유지

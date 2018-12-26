@@ -21,7 +21,7 @@ protected:
 	CString	CheckSpread();
 
 public:
-	CPyroSoftMDoc* pDoc;
+	CPyroSoftMDoc* pDoc = nullptr;
 	CROIGridDlg	m_ROIGridDlg;
 	CRect m_rectCurHist;
 

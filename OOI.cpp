@@ -269,7 +269,7 @@ bool COOI::SetMinSize(int val) {
 	return result;
 }
 
-////	OOI 자식들의 생성자's		////
+////	OOI 자식들의 생성자		////
 CBROI::CBROI()
 {
 	stretch = new CLineStretch(this);
@@ -300,7 +300,7 @@ CEROI::CEROI()
 	move = new CRectMove(this);
 }
 
-////	Stretch 자식들의 생성자's	////
+////	Stretch 자식들의 생성자	////
 CLineStretch::CLineStretch(COOI* pOOI) {
 	this->pOOI = pOOI;
 	
@@ -322,7 +322,7 @@ CStretchNoway::CStretchNoway(COOI* pOOI) {
 }
 
 
-////	Move 자식들의 생성자's	////
+////	Move 자식들의 생성자	////
 CRectMove::CRectMove(COOI* pOOI){
 	this->pOOI = pOOI;
 }
@@ -338,7 +338,6 @@ CPointMove::CPointMove(COOI* pOOI){
 CMoveNoway::CMoveNoway(COOI* pOOI){
 	this->pOOI = pOOI;
 }
-
 
 
 bool COOI::GetDirection()
@@ -600,10 +599,7 @@ bool CLineStretch::InvalidateRegion(RECT* CBaseRect, int lineCase, double static
 	int OOI_lx, OOI_rx, OOI_ty, OOI_by;
 	double tmp1, tmp2;
 
-	OOI_lx = pOOI->GetPosXY(X_LEFT);
-	OOI_rx = pOOI->GetPosXY(X_RIGHT);
-	OOI_ty = pOOI->GetPosXY(Y_TOP);
-	OOI_by = pOOI->GetPosXY(Y_BOTTOM);
+	pOOI->InputXYVal(OOI_lx, OOI_rx, OOI_ty, OOI_by);
 
 	OOI_lx += 1; OOI_rx += 1;
 	OOI_ty += 1; OOI_by += 1;

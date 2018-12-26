@@ -5,7 +5,6 @@
 #include "PyroSoftM.h"
 #include "ROIGridView.h"
 
-
 // CStatusView
 
 IMPLEMENT_DYNCREATE(CROIGridView, CView)
@@ -86,8 +85,13 @@ void CROIGridView::AdjustLayout()
 
 	int dlgH = 0;
 
-	if (theApp.adjust_count > 4)
+	if (theApp.adjust_count > 4) {
+		if (pDoc != nullptr && pDoc->m_OpenMode == 1)
+			InitStatusData();
+
 		theApp.nStatusDlgHeight = rectClient.Width();
+
+	}
 
 	m_ROIGridDlg.SetWindowPos(NULL,
 		rectClient.left,
@@ -171,10 +175,10 @@ void CROIGridView::UpdateStatusData()
 	// ---- 171211 VERIFYING RESULTDATA ELEMENTS ---- //
 	if (pDoc->m_POI_count > 0)		// POI가 있을 시 POI&ROI 온도값 출력
 	{
-		// Print POI
+		// Print PROI
 		PrintTemp(0, pDoc->m_POI_count, pDoc->POI_TemperatureArray, 1);
 
-		// Print ROI
+		// Print TROI
 		PrintTemp(0, pDoc->m_ROICount, pDoc->m_ResultData.TMax, 2, pDoc->m_POI_count + 1);
 
 		// Print Spread
@@ -189,8 +193,7 @@ void CROIGridView::UpdateStatusData()
 
 		for (int i = 0; i < pDoc->m_ROI_loop_count; i++)
 		{
-			if (pDoc->m_ResultData.TMax[i] > 0 && pDoc->m_ResultData.TMax[i] > pDoc->m_spreadDetctRange)
-			{
+			if (pDoc->m_ResultData.TMax[i] > 0 && pDoc->m_ResultData.TMax[i] > pDoc->m_spreadDetctRange) {
 				spreadCnt++;
 			}
 		}
@@ -318,8 +321,6 @@ void CROIGridView::UpdateGridControlSet()
 			m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(0, 0, _T(""));
 			m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(1, 0, _T("POI Temp"));
 			m_ROIGridDlg.m_ROI_GridView.put_TextMatrix(2, 0, _T("Max Temp"));
-
-			
 
 			for (int i = 1; i < 3; i++)
 				m_ROIGridDlg.m_ROI_GridView.put_RowHeight(i, (rectClient.Height() - 42) / 2 * 15);

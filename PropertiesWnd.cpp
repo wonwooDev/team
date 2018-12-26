@@ -22,7 +22,6 @@ static char THIS_FILE[] = __FILE__;
 CString strColorBar[9] = { "SYMIICON", "MULTICOLOR", "SPECTRUM", "THERMO",
 "GRAY", "GRAYPLUS", "HOTMETAL", "IRON", "LIGHT", };
 
-//CString strZoomMode[8] = {"100%","100%","125%","150%","200%","300%","400%","ROI Size"};
 CString strZoomMode[12] = { "Auto", "25%", "50%", "100%", "200%", "300%", "400%", "500%", "600%", "800%", "1000%", "1500%" };
 
 CString NoScaleColor[7] = { "256", "128", "63", "31", "21", "15", "11" };
@@ -301,11 +300,6 @@ void CPropertiesWnd::InitPropList()
 	pFocusPosition->Enable(0);
 	pFocus->AddSubItem(pFocusPosition);
 
-	///pFocusSetPosition = new CMFCPropertyGridProperty(_T("Position"), (_variant_t)_T(""), _T(""));
-	///pFocusSetPosition->AllowEdit(FALSE);
-	///pFocusSetPosition->Enable(0);
-	///pFocus->AddSubItem(pFocusSetPosition);
-
 	m_wndPropList.AddProperty(pFocus);
 
 	// Measurement Data ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,10 +308,6 @@ void CPropertiesWnd::InitPropList()
 	pMeasureDataZoneInfoEnable = new CCheckBoxPropertyGridProperty(_T("Zone Info Enable"), true, (_variant_t)true, _T(""));
 	pMeasureDataZoneInfoEnable->Enable(FALSE);
 	pMeasureData->AddSubItem(pMeasureDataZoneInfoEnable);
-
-	//pMeasureDataAutoETMode = new CCheckBoxPropertyGridProperty(_T("Auto E/T Mode"), true, (_variant_t)true, _T(""));
-	//pMeasureDataAutoETMode->Enable(FALSE);
-	//pMeasureData->AddSubItem(pMeasureDataAutoETMode);
 
 	pMeasureDataThreshold = new CFLoatPropertyGridProperty(_T("Threshold (กษ)"), (_variant_t) 0.0f);
 	pMeasureDataThreshold->AllowEdit(FALSE);
@@ -418,10 +408,6 @@ void CPropertiesWnd::InitPropList()
 	pResultDataSaveFilePath->Enable(FALSE);
 	pDataSave->AddSubItem(pResultDataSaveFilePath);
 
-	//pRawDataSaveFileName = new CMFCPropertyGridProperty(_T("File Basename"), (_variant_t)_T(""), _T(""));
-	//pRawDataSaveFileName->AllowEdit(FALSE);
-	//pDataSave->AddSubItem(pRawDataSaveFileName);
-
 	m_wndPropList.AddProperty(pDataSave);
 
 	pDataSave->Show(FALSE);
@@ -505,7 +491,6 @@ void CPropertiesWnd::ChangeProperties(CPyroSoftMDoc* pDoc)
 
 	//=============== Data Acquisition ===============================
 	CString	strDate, strTime;
-	//theApp.DDAQ_IRDX_ACQUISITION_GetTimeStampString(pDoc->m_hIRDX_Doc, strDate, strTime);		// mody 05-24
 	theApp.DDAQ_IRDX_ACQUISITION_GetTimeStampString(pDoc->m_hIRDX_Doc, theApp.m_systemDate, theApp.m_systemTime);
 	pDataAcq_Date->SetValue((_variant_t)(theApp.m_systemDate));
 	pDataAcq_Time->SetValue((_variant_t)(theApp.m_systemTime));
@@ -518,14 +503,6 @@ void CPropertiesWnd::ChangeProperties(CPyroSoftMDoc* pDoc)
 
 
 	//=================================================================
-	/*
-	if (pDoc->m_OpenMode>1) {
-		theApp.DDAQ_IRDX_DEVICE_GetInternalFPS(pDoc->m_hIRDX_Doc, &pDoc->m_FPS);
-	}
-	else {
-		pDoc->m_FPS = 0.0f;
-	}
-	*/
 	theApp.DDAQ_IRDX_DEVICE_GetInternalFPS(pDoc->m_hIRDX_Doc, &pDoc->m_FPS);		// mody 2018-08-10
 
 	unsigned short avg = 1;
@@ -663,8 +640,6 @@ void CPropertiesWnd::ChangeProperties(CPyroSoftMDoc* pDoc)
 	//======================= Focus =================================	
 	s.Format("%d", pDoc->m_FocusPosition);
 	pFocusPosition->SetValue((_variant_t)(s));
-	///s.Format("%d", pDoc->m_FocusPosition);
-	///pFocusSetPosition->SetValue((_variant_t)(s));
 
 	//=====================Measuerment Data ==========================
 	pMeasureDataThreshold->SetValue((_variant_t)(pDoc->m_Threshold));
@@ -681,7 +656,7 @@ void CPropertiesWnd::ChangeProperties(CPyroSoftMDoc* pDoc)
 	s.Format("%d", pDoc->m_Font_Size);
 	pMeasureDataFontSize->SetValue((_variant_t)(s));
 
-	s.Format("%d", pDoc->m_BROI_minSize);
+	s.Format("%d", pDoc->BROI->GetMinSize());
 	pMeasureDataBaseROISize->SetValue((_variant_t)(s));
 
 	pDataAcq_TriggerDist->SetValue((_variant_t)(s));
@@ -706,7 +681,6 @@ void CPropertiesWnd::ChangeProperties(CPyroSoftMDoc* pDoc)
 	pRawDataSaveEnable->SetValue(pDoc->m_bRawDataSave);
 	pRawDataSaveFilePath->SetValue((_variant_t)(pDoc->m_strRawDataFilePath));
 	pResultDataSaveFilePath->SetValue((_variant_t)(pDoc->m_strResultDataFilePath));
-
 	////////////////////////////////////////////////////////////////////////////////	
 
 	// Enabling Controls ///////////////////////////////////////////////////////////
@@ -1131,17 +1105,21 @@ LRESULT CPropertiesWnd::OnPropertyChanged(WPARAM wparam, LPARAM lparam)
 		USES_CONVERSION;
 		pbstr = OLE2A(var.bstrVal);
 		int iVal = _ttoi(CString(pbstr));
+
 		CString str;
+		int tmp_BROIMinSize = 0;
 
 		if (iVal > 10)
-			pDoc->m_BROI_minSize = 50;
+			tmp_BROIMinSize = 10;
 		else if (iVal < 1)
-			pDoc->m_BROI_minSize = 1;
+			tmp_BROIMinSize = 1;
 		else
-			pDoc->m_BROI_minSize = iVal;
+			tmp_BROIMinSize = iVal;
 
-		str.Format("%d", pDoc->m_BROI_minSize);
+		str.Format("%d", tmp_BROIMinSize);
 		pMeasureDataBaseROISize->SetValue(str);
+
+		pDoc->BROI->SetMinSize(tmp_BROIMinSize);
 
 		pDoc->UpdateAllViews(NULL, 2);
 	}

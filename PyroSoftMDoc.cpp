@@ -238,8 +238,6 @@ CPyroSoftMDoc::CPyroSoftMDoc()
 	m_ZoomMode = 1;			//100%
 	m_ZoomRatio = 0.0f;
 
-	m_BROI_minSize = 10;		// Base ROI init size
-
 	// Step Diff
 	m_upStepCoeff = 0.0f;
 	m_middleStepCoeff = 0.0f;
@@ -1512,6 +1510,7 @@ void CPyroSoftMDoc::LoadConfig()
 {
 	FILE *stream;
 	CString str;
+	int tmp_BROIMinSize;
 	int side;
 	int tmpLCount, tmpRCount;
 	float tmpFirstCoeff;
@@ -1555,8 +1554,8 @@ void CPyroSoftMDoc::LoadConfig()
 	fscanf(stream, "ROIBuffer=%d\n", &m_ROIBufferLimit);
 	fscanf(stream, "CatchROINum=%d\n", &m_ROICatchCnt);
 	fscanf(stream, "ROICount=%d\n", &m_ROICount);
-	fscanf(stream, "ObjectROIMinSize=%d\n", &m_BROI_minSize);
-	BROI->SetMinSize(m_BROI_minSize);
+	fscanf(stream, "ObjectROIMinSize=%d\n", &tmp_BROIMinSize);
+	BROI->SetMinSize(tmp_BROIMinSize);
 
 	// [Regression analysis]
 	fgets(dummy, 127, stream);
@@ -1942,7 +1941,7 @@ void CPyroSoftMDoc::SaveConfig()
 	fprintf(stream, "ROIBuffer=%d\n", m_ROIBufferLimit);
 	fprintf(stream, "CatchROINum=%d\n", m_ROICatchCnt);
 	fprintf(stream, "ROICount=%d\n", m_ROICount);
-	fprintf(stream, "ObjectROIMinSize=%d\n\n", m_BROI_minSize);
+	fprintf(stream, "ObjectROIMinSize=%d\n\n", BROI->GetMinSize());
 
 	// [Regression analysis]
 	fprintf(stream, "[Regression analysis]\n");
@@ -2235,35 +2234,6 @@ bool CPyroSoftMDoc::AddRHKData(CString FileName, bool flag)
 	return bRet;
 }
 
-/*void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
-{
-	unsigned long id = 0;
-	unsigned long type = 0;
-
-	theApp.DDAQ_IRDX_DEVICE_GetID(m_hIRDX_Doc, &id, &type);
-
-	bool ok = false;
-	float temp = 0.0f;
-
-	theApp.DDAQ_IRDX_DEVICE_GetCameraTemp(m_hIRDX_Doc, &temp, &ok);
-
-	fprintf(stream, "%d\t", m_AcqIndex++);
-
-	fprintf(stream, "%s\t", DateTime);
-
-	fprintf(stream, "%.2lf\t", m_RHKTotalDistance);
-
-	fprintf(stream, "%.2f\t", m_Emissivity);
-
-	fprintf(stream, "%.2f\t", m_Transmission);
-
-	for (int i = 0; i < m_ROICount; i++)
-	{
-		fprintf(stream, "%.2f\t%.2f\t%.2f\t", m_ResultData.TMin[i], m_ResultData.TMax[i], m_ResultData.TAvg[i]);
-	}
-
-	fprintf(stream, "\n");
-}*/
 void CPyroSoftMDoc::WriteRHKData(FILE *stream, bool flag, CString DateTime)
 {
 	unsigned long id = 0;
