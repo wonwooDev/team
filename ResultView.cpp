@@ -25,6 +25,11 @@ CResultView::CResultView()
 	m_XCount = 0;
 	m_XCount_modeThr = 0;
 	fTime = 0;
+
+	for (int k = 0; k < 31; k++) {
+		distPerZones[k] = 0;
+	}
+	isAlreadyChecked = false;
 }
 
 CResultView::~CResultView()
@@ -208,18 +213,20 @@ void CResultView::UpdateResult()
 	{
 		if (!(pDoc->m_ZoneInfoEnable)) {
 			m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
-			// Zone information disable되면 차트 클리어 필요함 by DK
 		}
 		else
 		{
-			//m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).Clear();
-			//DrawZoneInformation();
-
 			if (theApp.m_bLoggingRunning)
 			{
 				m_ResultDlg.m_ZoneInf_btn.EnableWindow(FALSE);
 				m_ResultDlg.m_Coefficient_btn.EnableWindow(FALSE);
 				m_ResultDlg.m_ClearGraph_btn.EnableWindow(FALSE);
+				
+				//float temp = pDoc->m_ZoneTemp[0];
+
+				// 저장 시작 시 drawing zone information temp
+				m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).Clear();
+				DrawZoneInformation();
 			}
 			else
 			{
@@ -265,22 +272,35 @@ void CResultView::UpdateResult()
 		{
 			if (!pDoc->m_bUpdateProperty)
 			{
+				// zone count 이중체크 방지 플래그 + Starting/Ending position 검증
+				if (isAlreadyChecked==false && pDoc->m_RHKZoneCount >= pDoc->m_StartingPos && pDoc->m_RHKZoneCount <= pDoc->m_EndingPos) {
+					// starting position일때의 위치 선정
+					for (int k = 0; k < pDoc->m_StartingPos; k++) {
+						zoneinfoCount += pDoc->m_ZoneDistance[k];
+					}
+					//zoneinfoCount = distPerZones[pDoc->m_RHKZoneCount - 1];
+					isAlreadyChecked = true;
+				}
+
 				for (int i = 0; i < pDoc->m_ROICount; i++)
 				{
-					if (pDoc->m_ResultData.TMax[i] != 0.0f)
-						m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).AddXY(m_XCount, pDoc->m_ResultData.TMax[i], ProcessTime, ColorRef(i));
+					if (pDoc->m_ResultData.TMax[i] != 0.0f && isAlreadyChecked == true /*&& distPerZones[pDoc->m_EndingPos]<zoneinfoCount*/)
+						m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(i).AddXY(zoneinfoCount, pDoc->m_ResultData.TMax[i], NULL, ColorRef(i));
 				}
+				if (isAlreadyChecked)	zoneinfoCount++;
 
 				if (pDoc->m_bCheckSpread) 
 				{
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(0).AddXY(m_XCount, pDoc->m_spreadTempr, ProcessTime, ColorRef(WHITE_COLOR));
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(1).AddXY(m_XCount, pDoc->m_spreadlimitTempr, ProcessTime, ColorRef(0));		// RED
-					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(2).AddXY(m_XCount, pDoc->m_spreadlimitTempr - 0.01, ProcessTime, ColorRef(0));
+					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(2).AddXY(m_XCount, pDoc->m_spreadlimitTempr-0.01, ProcessTime, ColorRef(0));
 					m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.Series(3).AddXY(m_XCount, pDoc->m_spreadlimitTempr + 0.01, ProcessTime, ColorRef(0));
 				}
-
+				 
 				if (pDoc->m_bSpreadCondition)
+				{
 					m_ResultDlg.m_SpreadTabDlg.spread_edit.SetWindowTextA("OK");
+				}
 				else
 					m_ResultDlg.m_SpreadTabDlg.spread_edit.SetWindowTextA("NG");
 
@@ -416,8 +436,8 @@ void CResultView::InitROIData()
 	}
 
 	// Zone temperature add by DK, 181210
-	//m_ResultDlg.m_MaxTabDlg.m_Max_Chart.AddSeries(0);
-	//m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).SetColor(ColorRef(WHITE_COLOR));
+	m_ResultDlg.m_MaxTabDlg.m_Max_Chart.AddSeries(0);
+	m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).SetColor(ColorRef(WHITE_COLOR));
 
 	// Create the Spread Chart 
 	m_ResultDlg.m_SpreadTabDlg.m_Spread_Chart.AddSeries(0);
@@ -463,17 +483,18 @@ HBRUSH CResultView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 }
 
 void CResultView::DrawZoneInformation() {
-	// zone information 정보를 포함한 X축의 데이터 갯수 계산
-	//for (int k = 0; k < 32; k++) {
-	//	int devDistance = pDoc->m_ZoneDistance[k];
-
-	//}
-
-	// X축 개수 나오면 그래프 그리기
-	
-	// 현재는 단순히 각 Zone에 해당하는 온도값만 그려준다.
-	//for (int k = 0; k < 32; k++) {
-	//	m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).AddXY(k, pDoc->m_ZoneTemp[k], NULL, ColorRef(WHITE_COLOR));
-	//}
-
+	// total distance를 X축으로, 각 zone 거리당 비율로 temperature line profile 그리기
+	double zoneDistance = 0;
+	for (int k = 0; k < 32; k++) {
+		if (k == 0) {		// 첫위치 잡고
+			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).AddXY(0, pDoc->m_ZoneTemp[0], 0, ColorRef(WHITE_COLOR));
+		}
+		else {
+			CString xAxisMark = _T("");		// zone mark
+			xAxisMark.Format(_T("%d"), k);
+			m_ResultDlg.m_MaxTabDlg.m_Max_Chart.Series(pDoc->m_ROICount).AddXY(zoneDistance, pDoc->m_ZoneTemp[k], xAxisMark, ColorRef(WHITE_COLOR));
+		}
+		zoneDistance += pDoc->m_ZoneDistance[k];
+		//distPerZones[k] = zoneDistance;
+	}
 }

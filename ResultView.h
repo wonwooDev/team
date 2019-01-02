@@ -65,6 +65,10 @@ public:
 	int					m_bmp_ofs_x;	// drawing ofs
 	int					m_bmp_ofs_y;
 	
+	int zoneinfoCount = 0;
+	int distPerZones[31];
+	bool isAlreadyChecked;
+
 	//작업입니다.
 public:
 	void AdjustLayout();
